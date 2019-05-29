@@ -18,7 +18,7 @@ ifconfig
 and look for a line for your connection similar to:
 
 ```bash
-inet addr:192.168.1.2  Bcast:172.25.0.255  Mask:255.255.255.0
+inet addr:192.168.1.2  Bcast:192.168.1.255  Mask:255.255.255.0
 ```
 
 Edit the `.env` file, setting it to the `network` (first 3 parts of the IP address) 
