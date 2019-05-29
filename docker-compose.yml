@@ -10,6 +10,7 @@ services:
       args:
         privatekey: 62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899
         password: pass
+        SUBNET_IP: ${SUBNET_IP}
     container_name: mainchain-dev-validator-1
     command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-validator-1" --password /root/.accountpassword --networkid 50010 --port 30401 --mine --gasprice "1" --targetgaslimit "420000000" --etherbase "0x6C45443De823a45e8f7204F1E69428E9AB42dd08" --unlock "0x6C45443De823a45e8f7204F1E69428E9AB42dd08" --syncmode="full" --nodekey="/root/.und_mainchain/bootnode_keys/0x6C45443De823a45e8f7204F1E69428E9AB42dd08.key" --nodiscover
     ports:
@@ -18,7 +19,7 @@ services:
       - 30401
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.2
+        ipv4_address: ${SUBNET_IP}.12
 
   mainchain-dev-validator-2:
     hostname: mainchain-dev-validator-2
@@ -28,6 +29,7 @@ services:
       args:
         privatekey: 226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c
         password: word
+        SUBNET_IP: ${SUBNET_IP}
     container_name: mainchain-dev-validator-2
     command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-validator-2" --password /root/.accountpassword --networkid 50010 --port 30402 --mine --gasprice "1" --targetgaslimit "420000000" --etherbase "0x743454EE5c097E56D0470C09B6c23880356Ce5FB" --unlock "0x743454EE5c097E56D0470C09B6c23880356Ce5FB" --syncmode="full" --nodekey="/root/.und_mainchain/bootnode_keys/0x743454EE5c097E56D0470C09B6c23880356Ce5FB.key" --nodiscover
     ports:
@@ -36,7 +38,7 @@ services:
       - 30402
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.3
+        ipv4_address: ${SUBNET_IP}.13
 
   mainchain-dev-validator-3:
     hostname: mainchain-dev-validator-3
@@ -46,6 +48,7 @@ services:
       args:
         privatekey: 5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42
         password: word
+        SUBNET_IP: ${SUBNET_IP}
     container_name: mainchain-dev-validator-3
     command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-validator-3" --password /root/.accountpassword --networkid 50010 --port 30403 --mine --gasprice "1" --targetgaslimit "420000000" --etherbase "0x36D82EeF3Ce9897b0073116F29E28F6E149757d0" --unlock "0x36D82EeF3Ce9897b0073116F29E28F6E149757d0" --syncmode="full" --nodekey="/root/.und_mainchain/bootnode_keys/0x36D82EeF3Ce9897b0073116F29E28F6E149757d0.key" --nodiscover
     ports:
@@ -54,7 +57,7 @@ services:
       - 30403
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.4
+        ipv4_address: ${SUBNET_IP}.14
 
   mainchain-dev-rpc:
     hostname: mainchain-dev-rpc
@@ -64,6 +67,7 @@ services:
       args:
         privatekey: 5c7d979c27680c498c0b3b2a00ef318097a7567b15f3a6a3fa1393b9da301a14
         password: word
+        SUBNET_IP: ${SUBNET_IP}
     container_name: mainchain-dev-rpc
     command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-rpc" --networkid 50010 --port 30404 --rpc --rpccorsdomain "*" --rpcaddr 0.0.0.0 --rpcport 8101 --rpcvhosts "*" --ws --wsaddr 0.0.0.0 --wsport 8111 --wsorigins "*" --syncmode="full" --nodiscover
     ports:
@@ -76,7 +80,7 @@ services:
       - 8111
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.5
+        ipv4_address: ${SUBNET_IP}.15
 
   mainchain-dev-explorer:
     hostname: mainchain-dev-explorer
@@ -88,13 +92,13 @@ services:
       context: Docker/und_devnet
       dockerfile: explorer/Dockerfile
       args:
-        mainchain_rpc: "172.25.1.5:8101"
+        mainchain_rpc: "${SUBNET_IP}.15:8101"
     container_name: mainchain-dev-explorer
     expose:
       - 8080
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.6
+        ipv4_address: ${SUBNET_IP}.16
 
   # WRKChain Services
   finchain-rpc:
@@ -106,6 +110,7 @@ services:
         PRIVATE_KEY: 5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42
         WALLET_PASS: pass
         WRKCHAIN_DATA_DIR: .und_wrkchain
+        SUBNET_IP: ${SUBNET_IP}
       context: Docker/wrkchain
       dockerfile: node/Dockerfile
     command: /root/.go/bin/geth --datadir=/root/.und_wrkchain --networkid 2339117895
@@ -118,7 +123,7 @@ services:
     hostname: finchain-rpc
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.25
+        ipv4_address: ${SUBNET_IP}.25
     ports:
     - published: 8547
       target: 8547
@@ -129,6 +134,7 @@ services:
         PRIVATE_KEY: 62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899
         WALLET_PASS: pass
         WRKCHAIN_DATA_DIR: .und_wrkchain
+        SUBNET_IP: ${SUBNET_IP}
       context: Docker/wrkchain
       dockerfile: node/Dockerfile
     command: /root/.go/bin/geth --datadir=/root/.und_wrkchain --etherbase 0x6C45443De823a45e8f7204F1E69428E9AB42dd08
@@ -141,7 +147,7 @@ services:
     hostname: finchain-validator-1
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.23
+        ipv4_address: ${SUBNET_IP}.23
     ports:
     - published: 30306
       target: 30306
@@ -152,6 +158,7 @@ services:
         PRIVATE_KEY: 226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c
         WALLET_PASS: pass
         WRKCHAIN_DATA_DIR: .und_wrkchain
+        SUBNET_IP: ${SUBNET_IP}
       context: Docker/wrkchain
       dockerfile: node/Dockerfile
     command: /root/.go/bin/geth --datadir=/root/.und_wrkchain --etherbase 0x743454EE5c097E56D0470C09B6c23880356Ce5FB
@@ -164,7 +171,7 @@ services:
     hostname: finchain-validator-2
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.24
+        ipv4_address: ${SUBNET_IP}.24
     ports:
     - published: 30307
       target: 30307
@@ -178,13 +185,13 @@ services:
       context: Docker/wrkchain
       dockerfile: explorer/Dockerfile
       args:
-        wrkchain_rpc: "172.25.1.25:8547"
+        wrkchain_rpc: "${SUBNET_IP}.25:8547"
     container_name: finchain-explorer
     expose:
       - 8081
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.26
+        ipv4_address: ${SUBNET_IP}.26
   finchain-wrkoracle:
     hostname: finchain-wrkoracle
     depends_on:
@@ -195,11 +202,11 @@ services:
       args:
         PRIVATE_KEY: cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898
         WALLET_PASS: pass
-    command: /root/src/run-wrkoracle.sh
+    command: /root/src/run-wrkoracle.sh ${SUBNET_IP}
     container_name: finchain-wrkoracle
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.27
+        ipv4_address: ${SUBNET_IP}.27
   finchain-validator-ui:
     hostname: finchain-validator-ui
     depends_on:
@@ -214,11 +221,11 @@ services:
       - 4040
     networks:
       wrkchainnet:
-        ipv4_address: 172.25.1.28
+        ipv4_address: ${SUBNET_IP}.28
 
 networks:
   wrkchainnet:
     driver: bridge
     ipam:
       config:
-      - subnet: 172.25.1.0/24
+      - subnet: ${SUBNET_IP}.0/24

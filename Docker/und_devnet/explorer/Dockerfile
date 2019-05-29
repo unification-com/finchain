@@ -17,5 +17,3 @@ RUN sed -i "s/localhost:8545/${mainchain_rpc}/g" views/layout/default_layout.jad
     grep -rl -e '(ethusd' * | xargs sed -i 's/(ethusd/(0.1/g'
 
 CMD npm run start
-
-EXPOSE 8080

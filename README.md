@@ -1,8 +1,18 @@
 # Finchain Demo
 
-Run:
+Copy `docker.env` to `.env`:
 
-`make`
+```bash
+cp docker.env .env
+```
+
+Edit the Subnet as required. Default is `172.25.1`
+
+Run using:
+
+```bash
+make
+```
 
 ## WRKChain: Finchain
 

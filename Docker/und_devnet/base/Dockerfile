@@ -32,5 +32,4 @@ COPY ./Docker/und_devnet/assets/bootnode_keys /root/.und_mainchain/bootnode_keys
 COPY ./Docker/und_devnet/assets/bootnode_keys/static-nodes-docker.json /root/.und_mainchain/und/static-nodes.json
 COPY ./Docker/und_devnet/assets/genesis/genesis-50010.json /root/.und_mainchain/genesis.json
 
-RUN echo "alias ll='ls -la'" >> /root/.bashrc && \
-    echo "alias python='/usr/bin/python3'" >> /root/.bashrc
+RUN echo "alias ll='ls -la'" >> /root/.bashrc
