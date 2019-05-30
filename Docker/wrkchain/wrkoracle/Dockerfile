@@ -2,12 +2,9 @@ FROM golang:1.11
 
 WORKDIR /root
 RUN mkdir /root/src
-RUN cd /root/src && git clone https://github.com/unification-com/oracle.git && \
-    # TODO: remove when merged
-    cd oracle && git checkout wrkchain_geth
+RUN cd /root/src && git clone https://github.com/unification-com/oracle.git
 
 RUN cd /root/src/oracle && go install ./cmd/wrkoracle
-RUN wrkoracle --version
 
 COPY ./assets/run-wrkoracle.sh /root/src/run-wrkoracle.sh
 RUN chmod +x /root/src/run-wrkoracle.sh
