@@ -25,13 +25,13 @@ inet addr:192.168.1.2  Bcast:192.168.1.255  Mask:255.255.255.0
 Look for the `network` (first 3 parts of the IP address) 
 value of `inet addr`. This is your current subnet. In the example above, this is `192.168.1`.
 
-Then set the SUBNET_IP variable to any other subnet. For example, run: 
+Then set the `SUBNET_IP` variable to any other subnet. For example, run: 
 
 ```bash
-SUBNET_IP=192.168.1 make
+SUBNET_IP=192.168.5 make
 ```
 
-to run the demo on the `192.168.1.0/24` subnet
+to run the demo on the `192.168.5.0/24` subnet
 
 ## WRKChain: Finchain Info
 
