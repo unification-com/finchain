@@ -10,8 +10,7 @@ make
 
 ## Docker network issues
 
-By default, the demo uses the `172.25.1.0/24` subnet. If you're having issues 
-with Docker networking and the default subnet, run:
+By default, the demo uses the `172.25.1.0/24` subnet. If this subnet overlaps with your own, run:
 
 ```bash
 ifconfig
@@ -24,9 +23,9 @@ inet addr:192.168.1.2  Bcast:192.168.1.255  Mask:255.255.255.0
 ```
 
 Look for the `network` (first 3 parts of the IP address) 
-value of `inet addr`. In the example above, this is `192.168.1`
+value of `inet addr`. This is your current subnet. In the example above, this is `192.168.1`.
 
-Then run:
+Then set the SUBNET_IP variable to any other subnet. For example, run: 
 
 ```bash
 SUBNET_IP=192.168.1 make
