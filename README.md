@@ -2,13 +2,15 @@
 
 Docker and Docker Compose are required to run the Finchain demo.
 
-Copy `docker.env` to `.env`:
+Run the demo using:
 
 ```bash
-cp docker.env .env
+make
 ```
 
-Edit the Subnet as required. Default is `172.25.1`. if you're having issues 
+## Docker network issues
+
+By default, the demo uses the `172.25.1.0/24` subnet. If you're having issues 
 with Docker networking and the default subnet, run:
 
 ```bash
@@ -21,14 +23,16 @@ and look for a line for your connection similar to:
 inet addr:192.168.1.2  Bcast:192.168.1.255  Mask:255.255.255.0
 ```
 
-Edit the `.env` file, setting it to the `network` (first 3 parts of the IP address) 
+Look for the `network` (first 3 parts of the IP address) 
 value of `inet addr`. In the example above, this is `192.168.1`
 
-Run the demo using:
+Then run:
 
 ```bash
-make
+SUBNET_IP=192.168.1 make
 ```
+
+to run the demo on the `192.168.1.0/24` subnet
 
 ## WRKChain: Finchain Info
 
