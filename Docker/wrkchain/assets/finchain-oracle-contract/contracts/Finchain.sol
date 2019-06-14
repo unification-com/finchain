@@ -46,6 +46,7 @@ contract Finchain {
      This allocates an array of stock structs to every oracle address
      */
      mapping(address => Stock[]) stocks; 
+     
      address[] public oracleArr; //array of oracle addresses
      Stock[] public stockArr; //array to iterate through stock mapping, NOT NEEDED?
 
