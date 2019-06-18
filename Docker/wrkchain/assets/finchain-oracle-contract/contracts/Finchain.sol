@@ -3,15 +3,13 @@ pragma experimental ABIEncoderV2 ; //To remove or not remove?
 
 contract Finchain {
     
-    using SafeMath for uint256;
-
-     address owner;
-     uint threshold;
+     address public owner;
+     uint public threshold;
      uint shadowCounter; //used to keep track of how many of the oracles updated their stocks
 
-     modifier whiteList() {
-     require (oracleAddresses[msg.sender] == true,
-        "Only owner can call this function.");
+     modifier isAuthorized() {
+     require (whiteList[msg.sender] == true,
+        "Only authorized addresses can call this function.");
       _;
      }
 
@@ -33,82 +31,76 @@ contract Finchain {
     );
 
     //event shows which stock has a possible arbitrage opportunity at a specified price
-     event discrepency(
-         address _source1,
-         address _source2,
-         string _ticker,
-         uint256 _price
+     event discrepancy(
+         string _ticker1,
+         uint256 _price1,
+         string _ticker2,
+         uint256 _price2,
+         string _ticker3,
+         uint256 _price3
+         
     );
 
-     mapping (address => bool) oracleAddresses; //whitelisted oracle addresses
+     mapping (address => bool) public whiteList; //whitelisted oracle addresses
+     address[] public oracleArr; //array of oracle addresses
      /*
      Mapping of oracle Addresses to stock arrays
      This allocates an array of stock structs to every oracle address
      */
-     mapping(address => Stock[]) stocks; 
-     
-     address[] public oracleArr; //array of oracle addresses
-     Stock[] public stockArr; //array to iterate through stock mapping, NOT NEEDED?
+     mapping(address => Stock[]) public stocks;
 
 
-     constructor (address[] memory _oracleAddresses, uint _threshold) public {
+     constructor (uint _threshold) public {
         owner = msg.sender;
-        for (uint i; i < _oracleAddresses.length; i++) {
-            oracleAddresses[_oracleAddresses[i]] = true;
-            oracleArr.push(_oracleAddresses[i]);
-            
-    }
-        oracleAddresses[owner] = true;
+        whiteList[owner] = true;
         threshold = _threshold;
   }
 
      function updateStock (
          string memory _ticker,
          uint256 _price,
-         uint _timestamp,
-         address _sourceID,
          uint i // array index, to be passed by nodeJS process
          )
-         public whiteList{
+         public isAuthorized{
          require (shadowCounter < 3, "Only three oracles currently permitted");
 
-         stocks[msg.sender][i].ticker = _ticker;
-         stocks[msg.sender][i].price = _price;
-         stocks[msg.sender][i].timestamp = _timestamp;
-         stocks[msg.sender][i].sourceID = _sourceID;
+         stocks[msg.sender].push(Stock({ticker: _ticker, price: _price, timestamp: now, sourceID: msg.sender }));
          
-         shadowCounter++;
-         
+         if (i == 99) shadowCounter++;
+
          if (shadowCounter == 3){
              shadowCounter = 0;
              compareStocks(oracleArr[0], oracleArr[1], oracleArr[2]); //move on to next state
          }
      }
 
- 
-     function compareStocks(address _source1, address _source2, address _source3) public {
+     function compareStocks(address _source1, address _source2, address _source3) private {
          
          uint k; //counter
-         for (k; k < 5 ; ++k){ //k < 5 just as an example of 5 stocks; Will be top 100 stocks
+         for (k; k < 1 ; ++k){ //k < 1 just as an example of 1 stock; Will be top 100 stocks
              uint p1 = stocks[_source1][k].price;
              uint p2 = stocks[_source2][k].price;
              uint p3 = stocks[_source3][k].price;
              
              bool result = errorMargins(p1, p2, p3);
              
-             if (result = true){
-                 emit discrepency(
-                    _source1,
-                    _source2,
+             if (result == true){
+                 emit discrepancy(
                     stocks[_source1][k].ticker,
-                    stocks[_source1][k].price
+                    stocks[_source1][k].price,
+                    stocks[_source2][k].ticker,
+                    stocks[_source2][k].price,
+                    stocks[_source3][k].ticker,
+                    stocks[_source3][k].price
                     ); }
-             
-             
+                    
+            
          }
+         
+         delete stocks[_source1]; delete stocks[_source2]; delete stocks[_source3];
      }
      
-     function errorMargins(uint _p1, uint _p2, uint _p3) public returns (bool) {
+    function errorMargins(uint _p1, uint _p2, uint _p3) private view returns (bool) {
         /*
         This function checks for a significant price difference
         for each stock between sources. The threshold level to emit an event is
@@ -118,127 +110,43 @@ contract Finchain {
         uint temp1 = min (_p1, _p2);
         uint temp2 = min (temp1, _p3);
         
-        if (((_p1 - temp2) / temp2) > threshold) return true;
-        if (((_p2 - temp2) / temp2) > threshold) return true;
-        if (((_p3 - temp2) / temp2) > threshold) return true;
+        uint comp1 = ( ( (_p1 - temp2) / temp2) * 100 );
+        uint comp2 = ( ( (_p2 - temp2) / temp2) * 100 );
+        uint comp3 = ( ( (_p3 - temp2) / temp2) * 100 );
+        
+        if ( comp1 > threshold) return true;
+        if ( comp2 > threshold) return true;
+        if ( comp3 > threshold) return true;
         
         return false;
         
-        
     }
     
+     function addSource(address _source) public {
+         require (msg.sender == owner,
+            "Only owner can call this function.");
+
+         whiteList[_source] = true;
+         oracleArr.push(_source);
+     }
+    
      function readStockData()
-        public whiteList
+        public isAuthorized
         view
         returns (Stock[] memory)
         { return stocks[msg.sender]; }
 
-     function addSource(address source) private {
-         require (msg.sender == owner,
-            "Only owner can call this function.");
-
-         oracleAddresses[source] = true;
-     }
 
      function configureErrorMargins(uint _threshold) public {
+         require(msg.sender == owner, "Only the owner of this contract can modify values");
          threshold = _threshold;
      }
      
+     //function to determine the smallest between two values. Used as a way to 
+     //find the percent difference between two prices, and to avoid negative
+     //values
      function min(uint a, uint b) private pure returns (uint) {
          return a < b ? a : b;
     }
 
-}
-
-library SafeMath {
-    /**
-     * @dev Returns the addition of two unsigned integers, reverting on
-     * overflow.
-     *
-     * Counterpart to Solidity's `+` operator.
-     *
-     * Requirements:
-     * - Addition cannot overflow.
-     */
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 c = a + b;
-        require(c >= a, "SafeMath: addition overflow");
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     * - Subtraction cannot overflow.
-     */
-    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b <= a, "SafeMath: subtraction overflow");
-        uint256 c = a - b;
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the multiplication of two unsigned integers, reverting on
-     * overflow.
-     *
-     * Counterpart to Solidity's `*` operator.
-     *
-     * Requirements:
-     * - Multiplication cannot overflow.
-     */
-    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
-        // benefit is lost if 'b' is also tested.
-        // See: https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522
-        if (a == 0) {
-            return 0;
-        }
-
-        uint256 c = a * b;
-        require(c / a == b, "SafeMath: multiplication overflow");
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers. Reverts on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator. Note: this function uses a
-     * `revert` opcode (which leaves remaining gas untouched) while Solidity
-     * uses an invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     * - The divisor cannot be zero.
-     */
-    function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        // Solidity only automatically asserts when dividing by 0
-        require(b > 0, "SafeMath: division by zero");
-        uint256 c = a / b;
-        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * Reverts when dividing by zero.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     * - The divisor cannot be zero.
-     */
-    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
-        require(b != 0, "SafeMath: modulo by zero");
-        return a % b;
-    }
 }
