@@ -54,7 +54,6 @@ module.exports = {
     //
 
 
-        //HARD CODED FOR NOW, WILL CHANGE TO DOTENV FORMAT LATER
        development: {
         host: "localhost",     // Localhost (default: none)
         port: 8547,            // Standard Ethereum port (default: none)
