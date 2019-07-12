@@ -2,8 +2,8 @@
 Sources to pull from:
 
 https://www.alphavantage.co/documentation/
-https://rapidapi.com/category/Finance
-https://www.programmableweb.com/news/96-stocks-apis-bloomberg-nasdaq-and-etrade/2013/05/22
+https://www.worldtradingdata.com/home
+https://iexcloud.io/docs/api/#metadata
 
 *******THE FOLLOWING KEYS SHOULD DEFINITELY BE STORED AS ENV VARS!!!**************
 alphavantage API key: PC5LQPAGBFVN0E07
@@ -28,7 +28,7 @@ function alphaVantageApi() {
     var alpha_key = 'PC5LQPAGBFVN0E07';
     var alpha_uri = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol='+symbols[0]+'&interval=60min&apikey='+alpha_key;
 
-    request.get(alpha_uri, function (error, response, body) {
+    request.get(alpha_uri, function getData(error, response, body) {
         console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
         if (error) console.log('error:', error); // Print the error if one occurred
         else {  
@@ -61,7 +61,7 @@ function IEXApi () {
     var IEX_key = 'pk_9d147f681d434a19b6bad93e80bacf0a';
     var IEX_uri = 'https://cloud.iexapis.com/stable/tops?token='+IEX_key+'&symbols='+symbols[0];
 
-    request.get(IEX_uri, function (error, response, body) {
+    request.get(IEX_uri, function getData(error, response, body) {
         //console.log("statusCode: ", response);
         if (error) console.log("error: ", error);
         else {
