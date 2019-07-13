@@ -22,12 +22,14 @@ require("dotenv").config();
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
 
-var privateKeys = [
+exports.privateKeys = [
   "cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898",
   "226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c",
   "62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899",
   "5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42"
-]
+];
+
+exports.rpcport = "http://localhost:8547";
 // const infuraKey = "fj4jll3k.....";
 //
 // const fs = require('fs');
@@ -58,7 +60,7 @@ module.exports = {
         host: "localhost",     // Localhost (default: none)
         port: 8547,            // Standard Ethereum port (default: none)
         network_id: 2339117895,       // Any network (default: none)
-        provider: new HDWalletProvider(privateKeys, "http://localhost:8547", 0 , 4),
+        provider: new HDWalletProvider(this.privateKeys, this.rpcport , 0 , 4),
         gas: 4500000,
        },
 

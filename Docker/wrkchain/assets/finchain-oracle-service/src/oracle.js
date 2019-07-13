@@ -8,7 +8,6 @@ https://iexcloud.io/docs/api/#metadata
 *******THE FOLLOWING KEYS SHOULD DEFINITELY BE STORED AS ENV VARS!!!**************
 alphavantage API key: PC5LQPAGBFVN0E07
 worldtradingdata API key: gA38Z0zV0GKDoNKNxFqb82sWYSarX7bNvcrTm0mC0irfnEfYdr8fm1qa7ID4
-IEX API secret key : sk_1382db890cfe460bb10c65f658c69dd6
 IEX API key : pk_9d147f681d434a19b6bad93e80bacf0a
 */
 
@@ -16,7 +15,7 @@ require("dotenv").config();
 
 var request = require('request');
 
-var symbols = ['ATVI','ADBE', 'AMD', 'ALXN','ALGN','GOOGL','GOOG','AMZN','AAL','AMGN','ADI','AAPL','AMAT','ASML',
+exports.symbols.symbols = ['ATVI','ADBE', 'AMD', 'ALXN','ALGN','GOOGL','GOOG','AMZN','AAL','AMGN','ADI','AAPL','AMAT','ASML',
     'ADSK','ADP', 'BIDU','BIIB','BMRN',	'BKNG',	'AVGO',	'CDNS','CELG','CERN','CHTR','CHKP','CTAS','CSCO','CTXS',
     'CTSH',	'CMCSA','COST','CSX','CTRP','DLTR','EBAY','EA','EXPE','FB',	'FAST',	'FISV',	'FOX','FOXA','GILD','HAS',
     'HSIC',	'IDXX',	'ILMN','INCY',	'INTC',	'INTU',	'ISRG',	'JBHT',	'JD','KLAC','LRCX','LBTYA',	'LBTYK','LULU',
@@ -69,6 +68,13 @@ function IEXApi () {
         }
 
     });
+}
+
+function callApi(callback) {
+    alphaVantageApi();
+    worldTradingDataApi();
+    IEXApi();
+    callback();
 }
 
 
