@@ -28,8 +28,10 @@ RUN cd ${GOPATH}/src/github.com/unification-com && \
 RUN cd ${GOPATH}/src/github.com/unification-com/mainchain/cmd/und && \
     go install .
 
+ARG GENESIS_SUFFIX
+
 COPY ./Docker/und_devnet/assets/bootnode_keys /root/.und_mainchain/bootnode_keys
 COPY ./Docker/und_devnet/assets/bootnode_keys/static-nodes-docker.json /root/.und_mainchain/und/static-nodes.json
-COPY ./Docker/und_devnet/assets/genesis/genesis-50010.json /root/.und_mainchain/genesis.json
+COPY ./Docker/und_devnet/assets/genesis/genesis-50010$GENESIS_SUFFIX.json /root/.und_mainchain/genesis.json
 
 RUN echo "alias ll='ls -la'" >> /root/.bashrc

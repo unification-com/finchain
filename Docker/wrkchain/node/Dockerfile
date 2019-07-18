@@ -15,6 +15,7 @@ ARG PRIVATE_KEY
 ARG WALLET_PASS
 ARG WRKCHAIN_DATA_DIR
 ARG SUBNET_IP
+ARG GENESIS_SUFFIX
 
 RUN wget https://dl.google.com/go/go1.$GO_VERSION.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go1.$GO_VERSION.linux-amd64.tar.gz && \
@@ -28,7 +29,7 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 RUN go get github.com/ethereum/go-ethereum
 RUN go install github.com/ethereum/go-ethereum/cmd/geth
 
-ADD ./assets/genesis.json /root/$WRKCHAIN_DATA_DIR/genesis.json
+ADD ./assets/genesis$GENESIS_SUFFIX.json /root/$WRKCHAIN_DATA_DIR/genesis.json
 COPY ./assets/node_keys /root/$WRKCHAIN_DATA_DIR/node_keys
 COPY ./assets/static-nodes.json /root/$WRKCHAIN_DATA_DIR/static-nodes.json
 
