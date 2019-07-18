@@ -1,0 +1,152 @@
+version: '3.3'
+
+services:
+  # UND devnet services
+  mainchain-dev-validator-1:
+    hostname: mainchain-dev-validator-1
+    build:
+      context: Docker/und_devnet
+      dockerfile: validator/Dockerfile
+      args:
+        privatekey: 62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899
+        password: pass
+        SUBNET_IP: ${SUBNET_IP}
+    container_name: mainchain-dev-validator-1
+    command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-validator-1" --password /root/.accountpassword --networkid 50010 --port 30401 --mine --gasprice "1" --targetgaslimit "420000000" --etherbase "0x6C45443De823a45e8f7204F1E69428E9AB42dd08" --unlock "0x6C45443De823a45e8f7204F1E69428E9AB42dd08" --syncmode="full" --nodekey="/root/.und_mainchain/bootnode_keys/0x6C45443De823a45e8f7204F1E69428E9AB42dd08.key" --nodiscover --rpc --rpccorsdomain "*" --rpcaddr 0.0.0.0 --rpcport 8101 --rpcvhosts "*" --ws --wsaddr 0.0.0.0 --wsport 8111 --wsorigins "*"
+    ports:
+      - 30401:30401/tcp
+      - 8101:8101/tcp
+      - 8111:8111/tcp
+    expose:
+      - 30401
+      - 8101
+      - 8111
+    networks:
+      wrkchainnet:
+        ipv4_address: ${SUBNET_IP}.15
+
+  mainchain-dev-explorer:
+    hostname: mainchain-dev-explorer
+    depends_on:
+      - mainchain-dev-validator-1
+    ports:
+      - 8080:8080
+    build:
+      context: Docker/und_devnet
+      dockerfile: explorer/Dockerfile
+      args:
+        mainchain_rpc: "${SUBNET_IP}.15:8101"
+    container_name: mainchain-dev-explorer
+    expose:
+      - 8080
+    networks:
+      wrkchainnet:
+        ipv4_address: ${SUBNET_IP}.16
+
+  # WRKChain Services
+  finchain-rpc:
+    depends_on:
+      - finchain-validator-1
+    build:
+      args:
+        GO_VERSION: 10.3
+        PRIVATE_KEY: 5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42
+        WALLET_PASS: pass
+        WRKCHAIN_DATA_DIR: .und_wrkchain
+        SUBNET_IP: ${SUBNET_IP}
+        GENESIS_SUFFIX: -slim
+      context: Docker/wrkchain
+      dockerfile: node/Dockerfile
+    command: /root/.go/bin/geth --datadir=/root/.und_wrkchain --networkid 2339117895
+      --nodekey="/root/.und_wrkchain/node_keys/0x36D82EeF3Ce9897b0073116F29E28F6E149757d0.key"
+      --port 30308 --rpc --rpcaddr "0.0.0.0" --rpcapi "admin,db,debug,eth,net,personal,txpool,web3"
+      --rpccorsdomain "*" --rpcport "8547" --rpcvhosts "*" --syncmode=full --verbosity=1 --nodiscover
+    container_name: finchain-rpc
+    expose:
+    - 8547
+    hostname: finchain-rpc
+    networks:
+      wrkchainnet:
+        ipv4_address: ${SUBNET_IP}.25
+    ports:
+    - published: 8547
+      target: 8547
+  finchain-validator-1:
+    build:
+      args:
+        GO_VERSION: 10.3
+        PRIVATE_KEY: 62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899
+        WALLET_PASS: pass
+        WRKCHAIN_DATA_DIR: .und_wrkchain
+        SUBNET_IP: ${SUBNET_IP}
+        GENESIS_SUFFIX: -slim
+      context: Docker/wrkchain
+      dockerfile: node/Dockerfile
+    command: /root/.go/bin/geth --datadir=/root/.und_wrkchain --etherbase 0x6C45443De823a45e8f7204F1E69428E9AB42dd08
+      --gasprice 0 --mine --networkid 2339117895 --nodekey="/root/.und_wrkchain/node_keys/0x6C45443De823a45e8f7204F1E69428E9AB42dd08.key"
+      --nodiscover --password /root/.walletpassword --port 30306 --syncmode=full --unlock
+      0x6C45443De823a45e8f7204F1E69428E9AB42dd08 --verbosity=4 --nodiscover
+    container_name: finchain-validator-1
+    expose:
+    - 30306
+    hostname: finchain-validator-1
+    networks:
+      wrkchainnet:
+        ipv4_address: ${SUBNET_IP}.23
+    ports:
+    - published: 30306
+      target: 30306
+  finchain-explorer:
+    hostname: finchain-explorer
+    depends_on:
+      - finchain-rpc
+    ports:
+      - 8081:8081
+    build:
+      context: Docker/wrkchain
+      dockerfile: explorer/Dockerfile
+      args:
+        wrkchain_rpc: "${SUBNET_IP}.25:8547"
+    container_name: finchain-explorer
+    expose:
+      - 8081
+    networks:
+      wrkchainnet:
+        ipv4_address: ${SUBNET_IP}.26
+  finchain-wrkoracle:
+    hostname: finchain-wrkoracle
+    depends_on:
+      - finchain-rpc
+    build:
+      context: Docker/wrkchain
+      dockerfile: wrkoracle/Dockerfile
+      args:
+        PRIVATE_KEY: cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898
+        WALLET_PASS: pass
+    command: /root/src/run-wrkoracle.sh ${SUBNET_IP}
+    container_name: finchain-wrkoracle
+    networks:
+      wrkchainnet:
+        ipv4_address: ${SUBNET_IP}.27
+  finchain-validator-ui:
+    hostname: finchain-validator-ui
+    depends_on:
+      - finchain-rpc
+    ports:
+      - 4040:4040
+    build:
+      context: Docker/wrkchain
+      dockerfile: wrkchain_validator_ui/Dockerfile
+    container_name: finchain-validator-ui
+    expose:
+      - 4040
+    networks:
+      wrkchainnet:
+        ipv4_address: ${SUBNET_IP}.28
+
+networks:
+  wrkchainnet:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: ${SUBNET_IP}.0/24
