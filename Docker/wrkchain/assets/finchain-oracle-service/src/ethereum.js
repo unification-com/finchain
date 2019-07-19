@@ -14,7 +14,7 @@ const web3 = new Web3(new HDWalletProvider( //connection to WRKChain
     0,
     4 ));
 const abi = finabi.abi;
-const address = '0xe802fa7FCbD7659147936Ae420C9b9402E3D657D';
+const address = process.env.CONTRACT_ADDRESS;
 const contract = web3.eth.contract(abi).at(address); //instance of contract
 
 //code to get accounts from web3 variable, can change to modular functions rather than promises
@@ -39,32 +39,17 @@ function addSources (callback) {
     }
 }
 function logAddress() {
-    console.log("Account "+account[1]+" added.\n");
+    console.log("Account "+ account[1]+" added.\n");
   }
 
 //block of code using contract var to call smart contract functions and passes in the proper parameters
 //For finchain, the function to call would be updateStock, which in turn will call the other 
 //private functions once certain criteria is met
 
-function updateStock () {
-    
+function updateStock (ticker, price, index, account) {
+    contract.updateStock(
+      ticker, price, index , { from : account }, function callComplete (err) {
+        if (err) console.log("error: ", err);
+        else console.log("Stock updated\n"); 
+    })
 }
-
-export const updateStock = ({ symbols.symbols[0], symbols.price[0], index }) => {
-  return new Promise((resolve, reject) => {
-    account().then(account => {
-      contract.updateStock(symbols.symbols[0], symbols.price[0], index, { from: account[0] }, (err, res) => {
-          if (err === null) {
-            resolve(res);
-          } else {
-            reject(err);
-          }
-        }
-      );
-    }).catch(error => reject(error));
-  });
-};
-
-export const weatherUpdate = (callback) => {
-  contract.WeatherUpdate((error, result) => callback(error, result));
-};

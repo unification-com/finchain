@@ -5,18 +5,14 @@ https://www.alphavantage.co/documentation/
 https://www.worldtradingdata.com/home
 https://iexcloud.io/docs/api/#metadata
 
-*******THE FOLLOWING KEYS SHOULD DEFINITELY BE STORED AS ENV VARS!!!**************
-alphavantage API key: PC5LQPAGBFVN0E07
-worldtradingdata API key: gA38Z0zV0GKDoNKNxFqb82sWYSarX7bNvcrTm0mC0irfnEfYdr8fm1qa7ID4
-IEX API key : pk_9d147f681d434a19b6bad93e80bacf0a
 */
 
-require("dotenv").config();
+require('dotenv').config({ path: 'C:/Users/Waleed Elsakka/Documents/Bounties/finchain-demo/.env'});
 
 var request = require('request');
 
-//list of symbols TO BECOME AN ENV VAR
-symbols = ['ATVI','ADBE', 'AMD', 'ALXN','ALGN','GOOGL','GOOG','AMZN','AAL','AMGN','ADI','AAPL','AMAT','ASML',
+//list of symbols. Should remain as is? or become env var?
+exports.symbols = ['ATVI','ADBE', 'AMD', 'ALXN','ALGN','GOOGL','GOOG','AMZN','AAL','AMGN','ADI','AAPL','AMAT','ASML',
     'ADSK','ADP', 'BIDU','BIIB','BMRN',	'BKNG',	'AVGO',	'CDNS','CELG','CERN','CHTR','CHKP','CTAS','CSCO','CTXS',
     'CTSH',	'CMCSA','COST','CSX','CTRP','DLTR','EBAY','EA','EXPE','FB',	'FAST',	'FISV',	'FOX','FOXA','GILD','HAS',
     'HSIC',	'IDXX',	'ILMN','INCY',	'INTC',	'INTU',	'ISRG',	'JBHT',	'JD','KLAC','LRCX','LBTYA',	'LBTYK','LULU',
@@ -25,8 +21,8 @@ symbols = ['ATVI','ADBE', 'AMD', 'ALXN','ALGN','GOOGL','GOOG','AMZN','AAL','AMGN
     'TXN','KHC','ULTA','UAL','VRSN','VRSK',	'VRTX',	'WBA','WDAY','WDC','WLTW','WYNN','XEL','XLNX'];
 
 function alphaVantageApi(callback) {
-    var alpha_key = 'PC5LQPAGBFVN0E07';
-    var alpha_uri = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol='+symbols[0]+'&interval=60min&apikey='+alpha_key;
+
+    var alpha_uri = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol='+exports.symbols[0]+'&interval=60min&apikey='+process.env.ALPHAVANTAGE;
 
     request.get(alpha_uri, function getData(error, response, body) {
         console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
@@ -37,7 +33,7 @@ function alphaVantageApi(callback) {
             var price = myJson["Time Series (60min)"];
             for (x in price){
                 console.log(
-                    "Ticker : ", symbols[0], '\n',
+                    "Ticker : ", exports.symbols[0], '\n',
                     "Price : ", price[x]['4. close'], '\n', 
                     "Timestamp : ", x, '\n'
                     ); //print JSON body
@@ -46,14 +42,12 @@ function alphaVantageApi(callback) {
             callback();   
         }
     });
-
-    
 }
 
 //function for World Trading API
 function worldTradingDataApi(callback) {
-    var world_key = 'gA38Z0zV0GKDoNKNxFqb82sWYSarX7bNvcrTm0mC0irfnEfYdr8fm1qa7ID4';
-    var world_uri = 'https://api.worldtradingdata.com/api/v1/stock?symbol='+symbols[0]+'&api_token='+world_key;
+
+    var world_uri = 'https://api.worldtradingdata.com/api/v1/stock?symbol='+exports.symbols[0]+'&api_token='+process.env.WORLDTRADING;
 
     request.get(world_uri, function worldrequest(error, response, body) {
         //proper formatting for World Trading API
@@ -75,8 +69,8 @@ function worldTradingDataApi(callback) {
 
 //function for IEX cloud API
 function IEXApi (callback) {
-    var IEX_key = 'pk_9d147f681d434a19b6bad93e80bacf0a';
-    var IEX_uri = 'https://cloud.iexapis.com/stable/tops?token='+IEX_key+'&symbols='+symbols[0];
+
+    var IEX_uri = 'https://cloud.iexapis.com/stable/tops?token='+process.env.IEX+'&symbols='+exports.symbols[0];
 
     request.get(IEX_uri, function getData(error, response, body) {
         console.log("statusCode: ", response && response.statusCode);
@@ -86,7 +80,7 @@ function IEXApi (callback) {
             console.log("IEX API: \n\n ");
             var myJson = JSON.parse(body);
             console.log(
-                "Ticker : ", symbols[0], '\n',
+                "Ticker : ", exports.symbols[0], '\n',
                 "Price : ", myJson[0]['lastSalePrice'], '\n', 
                 "Timestamp : ", new Date(myJson[0]['lastSaleTime']).toISOString().slice(0, 19).replace('T', ' '), '\n',
                 );
