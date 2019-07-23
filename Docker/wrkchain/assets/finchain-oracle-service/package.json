@@ -18,9 +18,11 @@
   },
   "dependencies": {
     "dotenv": "^5.0.1",
+    "npm": "^6.10.1",
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5",
-    "truffle-hdwallet-provider": "^1.0.2",
-    "web3": "^0.20.7"
+    "truffle-contract": "^4.0.25",
+    "truffle-hdwallet-provider": "^1.0.14",
+    "web3": "^1.0.0-beta.26"
   }
 }
