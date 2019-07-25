@@ -81,8 +81,8 @@ function IEXApi (callback) {
             var myJson = JSON.parse(body);
             console.log(
                 "Ticker : ", exports.symbols[0], '\n',
-                "Price : ", myJson[0]['lastSalePrice'], '\n', 
-                "Timestamp : ", new Date(myJson[0]['lastSaleTime']).toISOString().slice(0, 19).replace('T', ' '), '\n',
+                "Price : ", myJson, '\n', 
+                "Timestamp : ", "new Date(myJson[0]['lastSaleTime']).toISOString().slice(0, 19).replace('T', ' ')", '\n',
                 );
                 console.log();
             callback();
@@ -92,21 +92,20 @@ function IEXApi (callback) {
 }
 
 //driver function to be exported to ethereum.js
-function callApi() {
+exports.callapi = function callApi() {
     //pass in NoOfStocks from smart contract
     //for (i = 0; i < NoOfStocks; ++i) 
         //each function should take i as an arg, and use that to define which symbol data should be related to
-        alphaVantageApi(logComplete);
-        worldTradingDataApi(logComplete);
-        IEXApi(logComplete);
-}
+        alphaVantageApi(this.log);
+        worldTradingDataApi(this.log);
+        //IEXApi(logComplete);
+};
 
 //callback function to inform when API call is complete
-function logComplete () {
+exports.log = function logComplete () {
     console.log("\n\nAPI'S REQUESTED SUCCESSFULLY\n\n");
 }
 
-callApi(logComplete);
 
 /*
 setInterval

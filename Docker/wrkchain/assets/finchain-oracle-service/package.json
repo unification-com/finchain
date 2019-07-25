@@ -1,13 +1,19 @@
 {
-  "name": "finchain-oracle-service",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "finchain-oracle",
+  "version": "0.1.0",
+  "description": "description",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "develop": "nodemon --exec babel-node src",
+    "test": "mocha --require babel-core/register",
+    "build": "rimraf lib && babel src -d lib",
+    "start": "node lib",
+    "lint": "eslint src"
   },
+  "repository": "",
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
+  "private": false,
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.1",
@@ -18,11 +24,10 @@
   },
   "dependencies": {
     "dotenv": "^5.0.1",
-    "npm": "^6.10.1",
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5",
-    "truffle-contract": "^4.0.25",
-    "truffle-hdwallet-provider": "^1.0.14",
-    "web3": "^1.0.0-beta.26"
+    "truffle": "^5.0.28",
+    "truffle-hdwallet-provider": "^1.0.11",
+    "web3": "0.20.6"
   }
 }
