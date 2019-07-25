@@ -11,10 +11,12 @@ RUN git checkout c6e12f1 && \
 
 ARG wrkchain_rpc
 RUN sed -i "s/localhost:8545/${wrkchain_rpc}/g" views/layout/default_layout.jade && \
+    sed -i "s/web3.js/web3.js@0.20.6/g" views/layout/default_layout.jade && \
     sed -i "s/8080/8081/g" bin/www && \
     grep -lr -e ' ETH' * | xargs sed -i 's/ ETH/ FIN/g' && \
     grep -lr -e 'Ethereum' * | xargs sed -i 's/Ethereum/FIN/g'  && \
     grep -lr -e 'Ether' * | xargs sed -i 's/Ether/FIN/g' && \
+    grep -lr -e 'Expolorer' * | xargs sed -i 's/Expolorer/Explorer/g' && \
     grep -rl -e '(ethusd' * | xargs sed -i 's/(ethusd/(0.1/g' && \
     echo "PORT=8081" >> .env
 
