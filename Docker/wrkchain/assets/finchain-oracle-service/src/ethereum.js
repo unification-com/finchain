@@ -3,8 +3,6 @@ require('dotenv').config({ path: 'C:/Users/Waleed Elsakka/Documents/Bounties/fin
 const HDWalletProvider = require('truffle-hdwallet-provider');
 const Web3 = require('web3');
 
-const symbols = require('./oracle');
-
 //research how to create arrays and abi strings for process.env
 var privateKeys = [
   "cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898",
@@ -305,13 +303,11 @@ const web3 = new Web3(provider);
 const myContract = web3.eth.contract(abi).at(process.env.CONTRACT_ADDRESS);
 
 //addSource function
-const addSource = (i) => {
+exports.addSource = (i) => {
   return new Promise( (resolve, reject) => {
     account().then(account => {
-      myContract.addSource(account[i], { from: account[0] }, (err, res) => { //where account[0] is the contract owner address
+      myContract.addSource(account[i], { from: account[0] }, (err) => { //where account[0] is the contract owner address
         if (err === null) {
-            console.log(privateKeys.length, " is length\n");
-            console.log(i, " is i\n");
             console.log(account[i], " Added to Whitelist\n");
             resolve();
           } else {
@@ -319,14 +315,12 @@ const addSource = (i) => {
             reject(err);
           }
         });
-      });
+      }).catch(err => reject(err));
     });
-    
   }
 
-
 //function to receive public keys of passed in private keys
-account = () => {
+const account = () => {
   return new Promise((resolve, reject) => {
     web3.eth.getAccounts((err, accounts) => {
       if (err === null) {
@@ -339,13 +333,11 @@ account = () => {
   });
 };
 
-
 //updateStock function
-
-const updateStock = ({ticker, price, index}) => {
+exports.updateStock = ({ticker, price, index}) => {
   return new Promise((resolve, reject) => {
     account().then(account => {
-      myContract.updateWeather(ticker, price, index, { from: account },
+      myContract.updateStock(ticker, price, index, { from: account[0] },
          (err, res) => {
           if (err === null) {
             resolve(res);
@@ -358,16 +350,9 @@ const updateStock = ({ticker, price, index}) => {
   });
 };
 
-/*
-function updateStock (ticker, price, index, accounts) {
-    contract.updateStock(
-      ticker, price, index , { from : accounts[0] }, function callComplete (err) {
-        if (err) console.log("error: ", err);
-        else console.log("Stock updated\n"); 
-    })
-}
-*/
-
+//functions to implement
+const readStockData;
+const changeThreshold;
 
 //necessary to stop Infura HDWalletProvider; Good for testing, might not need it for actual deployment
 provider.engine.stop();
