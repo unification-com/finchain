@@ -88,7 +88,7 @@ services:
     build:
       args:
         GO_VERSION: 10.3
-        PRIVATE_KEY: 5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42
+        PRIVATE_KEY: 5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42 #0x36D82EeF3Ce9897b0073116F29E28F6E149757d0
         WALLET_PASS: pass
         WRKCHAIN_DATA_DIR: .und_wrkchain
         SUBNET_IP: ${SUBNET_IP}
@@ -112,7 +112,7 @@ services:
     build:
       args:
         GO_VERSION: 10.3
-        PRIVATE_KEY: 62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899
+        PRIVATE_KEY: 62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899 #0x6C45443De823a45e8f7204F1E69428E9AB42dd08
         WALLET_PASS: pass
         WRKCHAIN_DATA_DIR: .und_wrkchain
         SUBNET_IP: ${SUBNET_IP}
@@ -136,7 +136,7 @@ services:
     build:
       args:
         GO_VERSION: 10.3
-        PRIVATE_KEY: 226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c
+        PRIVATE_KEY: 226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c #0x743454EE5c097E56D0470C09B6c23880356Ce5FB
         WALLET_PASS: pass
         WRKCHAIN_DATA_DIR: .und_wrkchain
         SUBNET_IP: ${SUBNET_IP}
@@ -181,7 +181,7 @@ services:
       context: Docker/wrkchain
       dockerfile: wrkoracle/Dockerfile
       args:
-        PRIVATE_KEY: cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898
+        PRIVATE_KEY: cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898 #0x83197e2e58929c41f6ebe3b4ea6d6a07cfb4a97b
         WALLET_PASS: pass
     command: /root/src/run-wrkoracle.sh ${SUBNET_IP}
     container_name: finchain-wrkoracle
