@@ -8,7 +8,7 @@
     "eip158Block": 3,
     "byzantiumBlock": 4,
     "posv": {
-      "period": 5,
+      "period": 15,
       "epoch": 900,
       "reward": 10,
       "rewardCheckpoint": 900,
