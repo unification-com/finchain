@@ -324,7 +324,6 @@ const account = () => {
   return new Promise((resolve, reject) => {
     web3.eth.getAccounts((err, accounts) => {
       if (err === null) {
-      console.log(accounts);
       resolve(accounts);
       } else {
       reject(err);
@@ -334,7 +333,7 @@ const account = () => {
 };
 
 //updateStock function
-exports.updateStock = ({ticker, price, index}) => {
+exports.updateStock = (ticker, price, index) => {
   return new Promise((resolve, reject) => {
     account().then(account => {
       myContract.updateStock(ticker, price, index, { from: account[0] },
@@ -342,6 +341,7 @@ exports.updateStock = ({ticker, price, index}) => {
           if (err === null) {
             resolve(res);
           } else {
+            console.log("nah")
             reject(err);
           }
         }
@@ -350,9 +350,21 @@ exports.updateStock = ({ticker, price, index}) => {
   });
 };
 
+
+exports.logEvent = () => {
+  return new Promise((resolve, reject) => {
+    myContract.discrepancy(function (result,error) {
+      if (!error){
+        console.log(result);
+        resolve(result);
+      }
+    });
+  });
+}
+
 //functions to implement
-const readStockData;
-const changeThreshold;
+//const readStockData;
+//const changeThreshold;
 
 //necessary to stop Infura HDWalletProvider; Good for testing, might not need it for actual deployment
 provider.engine.stop();

@@ -1,11 +1,9 @@
 var ether = require('./ethereum.js');
 var oracle = require('./oracle.js');
 
-var arrays = oracle.callapi(0);
 isAdded = false;
 
 //The below function calls should be for initializing the contract and updating stock prices
-
 
 //Adding each approved address to the whitelist; execute if boolean
 function addAddressToWhitelist(){
@@ -15,17 +13,26 @@ function addAddressToWhitelist(){
     isAdded = true;
 };
 
+
 //pass in process.env.NOOFSTOCKS
 function updateSmartContract(index) {
-    if(isAdded == false) {
+    
+
+    if (isAdded == false) {
         addAddressToWhitelist();
+        ether.logEvent();
     }
-    
-    
+
+    for (i = 0; i < index; i++) {
+        var apidata = [oracle.alphaVantageApi(i),oracle.worldTradingDataApi(i), oracle.IEXApi(i)];
+        Promise.all(apidata).then(arr => {
+            for (k = 0; k < 3; k++) {
+                ether.updateStock(arr[k][0], Math.trunc(arr[k][1] * 100), arr[k][2]);
+            }
+        });
+    }
 }
 
+setInterval(updateSmartContract, process.env.UPDATE_TIME, process.env.NOOFSTOCKS);
 
-/*
-setInterval
-setTimeout(); //useful for continually executing a piece of code on an interval
-*/
+
