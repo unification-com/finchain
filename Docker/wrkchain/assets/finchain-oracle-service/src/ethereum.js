@@ -1,4 +1,4 @@
-require('dotenv').config({ path: 'C:/Users/Waleed Elsakka/Documents/Bounties/finchain-demo/.env'});
+require('dotenv').config();
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
 const Web3 = require('web3');
@@ -301,6 +301,8 @@ const provider = new HDWalletProvider(privateKeys, process.env.WRKCHAIN_RPC_PORT
 const web3 = new Web3(provider);
 //instantiation of contract at its address and with abi
 const myContract = web3.eth.contract(abi).at(process.env.CONTRACT_ADDRESS);
+exports.event = myContract.discrepancy();
+
 
 //addSource function
 exports.addSource = (i) => {
@@ -350,7 +352,13 @@ exports.updateStock = (ticker, price, index) => {
   });
 };
 
+event.watch(function (error,result) {
+  if (!error){
+    console.log("Result is: ", result);
+  }
+});
 
+/*
 exports.logEvent = () => {
   return new Promise((resolve, reject) => {
     myContract.discrepancy(function (result,error) {
@@ -361,6 +369,7 @@ exports.logEvent = () => {
     });
   });
 }
+*/
 
 //functions to implement
 //const readStockData;

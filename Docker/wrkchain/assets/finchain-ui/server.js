@@ -24,8 +24,8 @@ app.get('/', function(req, res) {
 });
 
 // block validation page
-app.get('/validate', function(req, res) {
-    res.render('pages/validate',{
+app.get('/Event listener', function(req, res) {
+    res.render('pages/listener',{
         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
         MAINCHAIN_WEB3_PROVIDER_URL: process.env.MAINCHAIN_WEB3_PROVIDER_URL,
         WRKCHAIN_ROOT_CONTRACT_ADDRESS: WRKCHAIN_ROOT_CONTRACT_ADDRESS,
@@ -36,7 +36,9 @@ app.get('/validate', function(req, res) {
     });
 });
 
-const PORT = process.env.WRKCHAIN_VALIDATOR_SERVICE_PORT || '4040'
+
+
+const PORT = process.env.WRKCHAIN_VALIDATOR_SERVICE_PORT
 app.listen(PORT);
 
 console.log( "====================================");

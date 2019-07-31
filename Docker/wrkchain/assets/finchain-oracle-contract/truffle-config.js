@@ -18,7 +18,7 @@
  *
  */
 
-require('dotenv').config({ path: 'C:/Users/Waleed Elsakka/Documents/Bounties/finchain-demo/.env'});
+require('dotenv').config({ path: });
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
 
@@ -35,7 +35,7 @@ module.exports = {
         host: "localhost",     // Localhost (default: none)
         port: 8547,            // Standard Ethereum port (default: none)
         network_id: 2339117895,       // Any network (default: none)
-        provider: new HDWalletProvider(this.privateKeys, process.env.WRKCHAIN_RPC_PORT , 0 , 4),
+        provider: new HDWalletProvider(this.privateKeys, process.env.WRKCHAIN_RPC_PORT , 0 , 4), //zero indexed, 4 keys
         gas: 4500000,
        },
 

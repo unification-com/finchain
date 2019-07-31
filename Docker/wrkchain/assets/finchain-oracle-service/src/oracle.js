@@ -7,7 +7,7 @@ https://iexcloud.io/docs/api/#metadata
 
 */
 
-require('dotenv').config({ path: 'C:/Users/Waleed Elsakka/Documents/Bounties/finchain-demo/.env'});
+require('dotenv').config({ path: });
 
 var request = require('request');
 

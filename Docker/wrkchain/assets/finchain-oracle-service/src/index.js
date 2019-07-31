@@ -16,11 +16,10 @@ function addAddressToWhitelist(){
 
 //pass in process.env.NOOFSTOCKS
 function updateSmartContract(index) {
-    
+    ether.event.watch();
 
     if (isAdded == false) {
         addAddressToWhitelist();
-        ether.logEvent();
     }
 
     for (i = 0; i < index; i++) {
