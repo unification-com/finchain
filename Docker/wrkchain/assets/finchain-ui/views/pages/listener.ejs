@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%= WRKCHAIN_NAME%> Block Event Listener</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header>
+      <!-- Fixed navbar -->
+      <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <a class="navbar-brand" href="#"><%= WRKCHAIN_NAME%></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item"><a class="nav-link" href="/">Block Watcher</a></li>
+            <li class="nav-item active"><a class="nav-link" href="/listener">Event Listener</a></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Begin page content -->
+    <main role="main" class="container">
+        <br>
+    <h1 class="mt-5">Block Listener</h1>
+
+    <p class="lead">
+      Check in here to see discrepencies between different sources.
+      <br>
+      <strong>Next check:</strong> <span id="next_block"><%= WRKCHAIN_ROOT_WRITE_TIMEOUT %></span>
+            
+    </p>
+        <br>
+    <p id="no_data"></p>
+
+    <div id="oracle_container">
+
+      <h2>Discrepency found : <span id="is_found"></span></h2>
+      <table>
+        <tr>
+            <td><strong>Oracle #1: </strong></td>
+          <td><span id="oracle_1_ticker"></span> <span id="oracle_1_price"></span> </td>
+        <tr>
+        <tr>
+          <td><strong>Oracle #2: </strong></td>
+          <td><span id="oracle_2_ticker"></span> <span id="oracle_2_price"></span></td>
+        <tr>
+        <tr>
+          <td><strong>Oracle #3:</strong> </td>
+          <td><span id="oracle_3_ticker"></span> <span id="oracle_3_price"></span></td>
+        <tr>
+      </table>
+    </div>
+
+    </main>
+
+    <footer class="footer">
+    <div class="container">
+        <span class="text-muted"></span>
+    </div>
+    </footer>
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+<script type="text/javascript" src="js/web3.min.js"></script>
+    <script type="text/javascript" src="js/Finchainevents.proto.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#no_data').hide();
+        $('#oracle_container').show();
+        
+        let events = new FinchainEventContract('<%= CONTRACT_ADDRESS%>',
+                                '<%= WRKCHAIN_WEB3_PROVIDER_URL%>',
+                                <%- JSON.stringify(FINCHAIN_ORACLE_ABI)%>);
+
+        emitEvent();
+        setInterval(function(){
+            emitEvent();
+        }, <%= WRKCHAIN_ROOT_WRITE_TIMEOUT%> * 1000);
+
+        setInterval(function(){
+            nextCheck();
+        }, 1000);
+
+        function emitEvent(block_num) {
+            $('#next_block').text(<%= WRKCHAIN_ROOT_WRITE_TIMEOUT%> + 1);
+            events.emitEvent(function showResults(result) {
+                if(result != NULL){
+                    $('#is_found').text('YES');
+                    $('#is_found').css('color', 'green');
+
+                    $('#oracle_1_ticker').text(result[0]);
+                    $('#oracle_1_price').text(result[1]);
+                    $('#oracle_2_ticker').text(result[2]);
+                    $('#oracle_2_price').text(result[3]);
+                    $('#oracle_3_ticker').text(result[4]);
+                    $('#oracle_3_price').text(result[5]);
+                }
+                else {
+                    $('#is_found').text('NO');
+                    $('#is_found').css('color', 'RED');
+                    $('#oracle1').text('N/A');
+                    $('#oracle1').css('color', 'blue');
+                }
+            });
+        }
+
+        function nextCheck() {
+            let current = parseInt($('#next_block').text());
+            let next = current - 1;
+            if(next < 0) {
+                next = 0;
+            }
+            $('#next_block').text(next)
+            $('#next_block').css('color','red')
+        }
+
+    });
+</script>
+</body>
+</html>

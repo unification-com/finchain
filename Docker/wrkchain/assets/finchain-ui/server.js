@@ -23,22 +23,26 @@ app.get('/', function(req, res) {
     });
 });
 
-// block validation page
-app.get('/Event listener', function(req, res) {
+// event listener page
+app.get('/listener', function(req, res) {
     res.render('pages/listener',{
         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
         MAINCHAIN_WEB3_PROVIDER_URL: process.env.MAINCHAIN_WEB3_PROVIDER_URL,
+        MAINCHAIN_EXPLORER_URL: process.env.MAINCHAIN_EXPLORER_URL,
         WRKCHAIN_ROOT_CONTRACT_ADDRESS: WRKCHAIN_ROOT_CONTRACT_ADDRESS,
         WRKCHAIN_ROOT_ABI: WRKCHAIN_ROOT_ABI,
-        BLOCK_NUM: req.query.block,
         WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
-        WRKCHAIN_NETWORK_ID: process.env.WRKCHAIN_NETWORK_ID
+        WRKCHAIN_ROOT_WRITE_TIMEOUT: process.env.WRKCHAIN_ROOT_WRITE_TIMEOUT,
+        CONTRACT_ADDRESS : process.env.CONTRACT_ADDRESS,
+        WRKCHAIN_WEB3_PROVIDER_URL : process.env.WRKCHAIN_WEB3_PROVIDER_URL,
+        FINCHAIN_ORACLE_ABI : process.env.FINCHAIN_ORACLE_ABI
+        
     });
 });
 
 
 
-const PORT = process.env.WRKCHAIN_VALIDATOR_SERVICE_PORT
+const PORT = process.env.WRKCHAIN_VALIDATOR_SERVICE_PORT || '4040'
 app.listen(PORT);
 
 console.log( "====================================");
