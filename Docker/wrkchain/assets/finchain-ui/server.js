@@ -46,7 +46,7 @@ const PORT = process.env.WRKCHAIN_VALIDATOR_SERVICE_PORT || '4040'
 app.listen(PORT);
 
 console.log( "====================================");
-console.log( "= WRKCHAIN VALIDATOR SERVICE READY =");
+console.log( "= FINCHAIN UI READY =");
 console.log( "= -------------------------------- =");
 console.log( "=                                  =");
 console.log( "= open:                            =");
