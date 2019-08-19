@@ -1,5 +1,5 @@
-pragma solidity >=0.5.0;
-pragma experimental ABIEncoderV2 ; //To remove or not remove?
+pragma solidity >= 0.4.22;
+//pragma experimental ABIEncoderV2 ; //To remove or not remove?
 
 contract Finchain {
      address public owner;
@@ -26,8 +26,7 @@ contract Finchain {
          address indexed _from,
          string _ticker,
          uint256 _price,
-         uint _timestamp,
-         address _id
+         uint _timestamp
     );
 
     //event shows which stock has a possible arbitrage opportunity at a specified price
@@ -54,6 +53,7 @@ contract Finchain {
         whiteList[owner] = true;
         threshold = _threshold;
         noOfStocks = _noOfStocks;
+        shadowCounter = 0;
   }
 
      function updateStock (
@@ -61,44 +61,51 @@ contract Finchain {
          uint256 _price,
          uint i // array index, to be passed by nodeJS process
          )
-         public isAuthorized{
+         public {
          require (shadowCounter < 3, "Only three oracles currently permitted");
 
          stocks[msg.sender].push(Stock({ticker: _ticker, price: _price, timestamp: now, sourceID: msg.sender }));
-         
+         //emit stockData(msg.sender, _ticker, _price, now);
+
          if (i == (noOfStocks - 1)) shadowCounter++;
 
-         if (shadowCounter == 3){
+         if (shadowCounter >= 3){
              shadowCounter = 0;
-             compareStocks(oracleArr[0], oracleArr[1], oracleArr[2]); //move on to next state
+             uint result = compareStocks(oracleArr[0], oracleArr[1], oracleArr[2]); //move on to next state
+             if (result < 101) {
+                emit discrepancy(
+                    stocks[oracleArr[0]][result].ticker,
+                    stocks[oracleArr[0]][result].price,
+                    stocks[oracleArr[1]][result].ticker,
+                    stocks[oracleArr[1]][result].price,
+                    stocks[oracleArr[2]][result].ticker,
+                    stocks[oracleArr[2]][result].price
+                    );
+                delete stocks[oracleArr[0]]; delete stocks[oracleArr[1]]; delete stocks[oracleArr[2]];
+             } else {
+                delete stocks[oracleArr[0]]; delete stocks[oracleArr[1]]; delete stocks[oracleArr[2]];
+             }
          }
      }
 
-     function compareStocks(address _source1, address _source2, address _source3) private {
-         
+     function compareStocks(address _source1, address _source2, address _source3) public returns (uint) {
+
          uint k; //counter
-         for (k; k < 1 ; ++k){ //k < 1 just as an example of 1 stock; Will be top 100 stocks
+         for (k; k < noOfStocks; ++k){ //can be top 100 stocks
              uint p1 = stocks[_source1][k].price;
              uint p2 = stocks[_source2][k].price;
              uint p3 = stocks[_source3][k].price;
 
              bool result = errorMargins(p1, p2, p3);
 
-             if (result == true){
-                 emit discrepancy(
-                    stocks[_source1][k].ticker,
-                    stocks[_source1][k].price,
-                    stocks[_source2][k].ticker,
-                    stocks[_source2][k].price,
-                    stocks[_source3][k].ticker,
-                    stocks[_source3][k].price
-                    ); }
+             if (result == true) {
+                 return k;
+             }
          }
-
-         delete stocks[_source1]; delete stocks[_source2]; delete stocks[_source3];
+         return 101;
      }
 
-    function errorMargins(uint _p1, uint _p2, uint _p3) private view returns (bool) {
+    function errorMargins(uint _p1, uint _p2, uint _p3) public view returns (bool) {
         /*
         This function checks for a significant price difference
         for each stock between sources. The threshold level to emit an event is
@@ -108,9 +115,9 @@ contract Finchain {
         uint temp1 = min (_p1, _p2);
         uint temp2 = min (temp1, _p3);
 
-        uint comp1 = ( ( (_p1 - temp2) / temp2) * 100 );
-        uint comp2 = ( ( (_p2 - temp2) / temp2) * 100 );
-        uint comp3 = ( ( (_p3 - temp2) / temp2) * 100 );
+        uint comp1 = ( ( (_p1 - temp2) * 100 )/ temp2 );
+        uint comp2 = ( ( (_p2 - temp2) * 100 )/ temp2 );
+        uint comp3 = ( ( (_p3 - temp2) * 100 )/ temp2 );
 
         if ( comp1 > threshold) return true;
         if ( comp2 > threshold) return true;
@@ -128,11 +135,10 @@ contract Finchain {
          oracleArr.push(_source);
      }
 
-     function readStockData()
-        public isAuthorized
-        view
-        returns (Stock[] memory)
-        { return stocks[msg.sender]; }
+     function resetShadow() public isAuthorized {
+          shadowCounter = 0; 
+          delete stocks[oracleArr[0]]; delete stocks[oracleArr[1]]; delete stocks[oracleArr[2]];
+          }
 
 
      function configureErrorMargins(uint _threshold) public {

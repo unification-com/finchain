@@ -1,4 +1,4 @@
-require('dotenv').config({ path: 'C:/Users/Waleed Elsakka/Documents/Bounties/finchain-demo/.env'});
+require('dotenv').config();
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
 const Web3 = require('web3');
@@ -164,11 +164,6 @@ const abi = [
         "indexed": false,
         "name": "_timestamp",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "name": "_id",
-        "type": "address"
       }
     ],
     "name": "stockData",
@@ -237,6 +232,60 @@ const abi = [
     "constant": false,
     "inputs": [
       {
+        "name": "_source1",
+        "type": "address"
+      },
+      {
+        "name": "_source2",
+        "type": "address"
+      },
+      {
+        "name": "_source3",
+        "type": "address"
+      }
+    ],
+    "name": "compareStocks",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_p1",
+        "type": "uint256"
+      },
+      {
+        "name": "_p2",
+        "type": "uint256"
+      },
+      {
+        "name": "_p3",
+        "type": "uint256"
+      }
+    ],
+    "name": "errorMargins",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
         "name": "_source",
         "type": "address"
       }
@@ -248,35 +297,12 @@ const abi = [
     "type": "function"
   },
   {
-    "constant": true,
+    "constant": false,
     "inputs": [],
-    "name": "readStockData",
-    "outputs": [
-      {
-        "components": [
-          {
-            "name": "ticker",
-            "type": "string"
-          },
-          {
-            "name": "price",
-            "type": "uint256"
-          },
-          {
-            "name": "timestamp",
-            "type": "uint256"
-          },
-          {
-            "name": "sourceID",
-            "type": "address"
-          }
-        ],
-        "name": "",
-        "type": "tuple[]"
-      }
-    ],
+    "name": "resetShadow",
+    "outputs": [],
     "payable": false,
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -301,6 +327,8 @@ const provider = new HDWalletProvider(privateKeys, process.env.WRKCHAIN_RPC_PORT
 const web3 = new Web3(provider);
 //instantiation of contract at its address and with abi
 const myContract = web3.eth.contract(abi).at(process.env.CONTRACT_ADDRESS);
+exports.dis = myContract.discrepancy({}, {fromBlock: 0, toBlock: 'latest'}); 
+exports.data = myContract.stockData();
 
 //addSource function
 exports.addSource = (i) => {
@@ -315,9 +343,24 @@ exports.addSource = (i) => {
             reject(err);
           }
         });
-      }).catch(err => reject(err));
+      });
     });
   }
+
+exports.resetShadow = () => {
+  return new Promise ( (resolve,reject) => {
+    account().then(account => {
+      myContract.resetShadow({from : account[0]}, (err) => {
+        if (err === null) {
+          console.log("ShadowCounter Reset");
+          resolve();
+        } else {
+          reject(err);
+        }
+      });
+    });
+  });
+}
 
 //function to receive public keys of passed in private keys
 const account = () => {
@@ -333,38 +376,23 @@ const account = () => {
 };
 
 //updateStock function
-exports.updateStock = (ticker, price, index) => {
+exports.updateStock = (ticker, price, index, i) => {
   return new Promise((resolve, reject) => {
     account().then(account => {
-      myContract.updateStock(ticker, price, index, { from: account[0] },
+      myContract.updateStock(ticker, price, index, { from: account[i] },
          (err, res) => {
           if (err === null) {
+            console.log("updateStock parameters: ", ticker, price, index, { from: account[i]})
             resolve(res);
           } else {
-            console.log("nah")
+            console.log(err)
             reject(err);
           }
         }
       );
-    }).catch(error => reject(error));
+    });
   });
 };
 
-
-exports.logEvent = () => {
-  return new Promise((resolve, reject) => {
-    myContract.discrepancy(function (result,error) {
-      if (!error){
-        console.log(result);
-        resolve(result);
-      }
-    });
-  });
-}
-
-//functions to implement
-//const readStockData;
-//const changeThreshold;
-
-//necessary to stop Infura HDWalletProvider; Good for testing, might not need it for actual deployment
-provider.engine.stop();
+//necessary to stop Infura HDWalletProvider;
+//provider.engine.stop();
