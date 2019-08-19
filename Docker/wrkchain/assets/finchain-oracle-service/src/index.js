@@ -15,23 +15,29 @@ function addAddressToWhitelist(){
 
 
 //pass in process.env.NOOFSTOCKS
-function updateSmartContract(index) {
-    ether.event.watch();
+async function updateSmartContract(numStocks) {
 
+    console.log("Waiting...\n");
+    k = 0;
+    
     if (isAdded == false) {
-        addAddressToWhitelist();
+        await addAddressToWhitelist();
+        await ether.resetShadow();
     }
 
-    for (i = 0; i < index; i++) {
+    for (i = 0; i < numStocks; i++) {
+        
         var apidata = [oracle.alphaVantageApi(i),oracle.worldTradingDataApi(i), oracle.IEXApi(i)];
-        Promise.all(apidata).then(arr => {
-            for (k = 0; k < 3; k++) {
-                ether.updateStock(arr[k][0], Math.trunc(arr[k][1] * 100), arr[k][2]);
+        Promise.all(apidata).then(async (arr) => {
+            for (const item of arr) {
+                ++k;
+                await ether.updateStock(item[0], (Math.trunc(item[1] * 100)) * k, i - 1, k)
+                    .catch(console.error, async () => {
+                        await ether.resetShadow();
+                    });
             }
-        });
+        });         
     }
 }
 
 setInterval(updateSmartContract, process.env.UPDATE_TIME, process.env.NOOFSTOCKS);
-
-

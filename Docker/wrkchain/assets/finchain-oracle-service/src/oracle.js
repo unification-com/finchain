@@ -7,7 +7,7 @@ https://iexcloud.io/docs/api/#metadata
 
 */
 
-require('dotenv').config({ path: });
+require('dotenv').config();
 
 var request = require('request');
 
@@ -50,9 +50,11 @@ exports.worldTradingDataApi = (index) => {
             //proper formatting for World Trading API
             if (error) reject(error); // Print the error if one occurred
             else {  
+                
                 var myJson = JSON.parse(body);
                 var data = myJson["data"][0];
                 var array = [data['symbol'],data['price'],Date.now()];
+                
                 resolve(array);
             }   
         });
@@ -75,9 +77,11 @@ exports.IEXApi = (index) => {
                 var myJson = JSON.parse(body);
                 var data = myJson[0];
                 var array = [data['symbol'], data['lastSalePrice'],Date.now()];
+                
                 resolve(array);
             }
         });
+        
     });
 }
 

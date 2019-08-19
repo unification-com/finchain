@@ -18,7 +18,7 @@
  *
  */
 
-require('dotenv').config({ path: });
+require('dotenv').config();
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
 

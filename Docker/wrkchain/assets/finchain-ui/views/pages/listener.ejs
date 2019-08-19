@@ -35,7 +35,7 @@
     <p class="lead">
       Check in here to see discrepencies between different sources.
       <br>
-      <strong>Next check:</strong> <span id="next_block"><%= WRKCHAIN_ROOT_WRITE_TIMEOUT %></span>
+      <strong>Next check:</strong> <span id="next_block"><%= UPDATE_TIME %></span>
             
     </p>
         <br>
@@ -47,16 +47,24 @@
       <table>
         <tr>
             <td><strong>Oracle #1: </strong></td>
-          <td><span id="oracle_1_ticker"></span> <span id="oracle_1_price"></span> </td>
+          <td><span id="oracle_1_ticker"><%= TICKER1 %></span> <span id="oracle_1_price"><%= PRICE1 %></span> </td>
         <tr>
         <tr>
           <td><strong>Oracle #2: </strong></td>
-          <td><span id="oracle_2_ticker"></span> <span id="oracle_2_price"></span></td>
+          <td><span id="oracle_2_ticker"><%= TICKER2 %></span> <span id="oracle_2_price"><%= PRICE2 %></span></td>
         <tr>
         <tr>
           <td><strong>Oracle #3:</strong> </td>
-          <td><span id="oracle_3_ticker"></span> <span id="oracle_3_price"></span></td>
+          <td><span id="oracle_3_ticker"><%= TICKER3 %></span> <span id="oracle_3_price"><%= PRICE3 %></span></td>
         <tr>
+        <tr>
+        <td><strong>Transaction Hash: </strong> </td>
+        <td><span id="txhash"><%= TXHASH %></span></td>
+        <tr>
+        <tr>
+        <td><strong>Time Found:</strong> </td>
+        <td><span id="date"><%= DATE %></span></td>
+        
       </table>
     </div>
 
@@ -89,47 +97,37 @@
         $('#no_data').hide();
         $('#oracle_container').show();
         
-        let events = new FinchainEventContract('<%= CONTRACT_ADDRESS%>',
-                                '<%= WRKCHAIN_WEB3_PROVIDER_URL%>',
-                                <%- JSON.stringify(FINCHAIN_ORACLE_ABI)%>);
-
-        emitEvent();
-        setInterval(function(){
-            emitEvent();
-        }, <%= WRKCHAIN_ROOT_WRITE_TIMEOUT%> * 1000);
-
         setInterval(function(){
             nextCheck();
         }, 1000);
 
-        function emitEvent(block_num) {
-            $('#next_block').text(<%= WRKCHAIN_ROOT_WRITE_TIMEOUT%> + 1);
-            events.emitEvent(function showResults(result) {
-                if(result != NULL){
-                    $('#is_found').text('YES');
-                    $('#is_found').css('color', 'green');
+        showEvent();
+        setInterval(function(){
+            showEvent();
+        }, 1000 );
 
-                    $('#oracle_1_ticker').text(result[0]);
-                    $('#oracle_1_price').text(result[1]);
-                    $('#oracle_2_ticker').text(result[2]);
-                    $('#oracle_2_price').text(result[3]);
-                    $('#oracle_3_ticker').text(result[4]);
-                    $('#oracle_3_price').text(result[5]);
-                }
-                else {
-                    $('#is_found').text('NO');
-                    $('#is_found').css('color', 'RED');
-                    $('#oracle1').text('N/A');
-                    $('#oracle1').css('color', 'blue');
-                }
-            });
-        }
+        function showEvent() {
+          
+          if(FOUND == "true"){
+
+              document.getElementById("is_found").innerHTML = "YES";
+              $('#is_found').text(FOUND);
+              $('#oracle_1_ticker').text(TICKER1);
+              $('#oracle_1_price').text(PRICE1);          
+              $('#oracle_2_ticker').text(TICKER2);
+              $('#oracle_2_price').text(PRICE2);
+              $('#oracle_3_ticker').text(TICKER3);
+              $('#oracle_3_price').text(PRICE3);
+              $('#txhash').text(TXHASH)
+          }
+              
+      }
 
         function nextCheck() {
             let current = parseInt($('#next_block').text());
             let next = current - 1;
             if(next < 0) {
-                next = 0;
+                next = <%= UPDATE_TIME %>;
             }
             $('#next_block').text(next)
             $('#next_block').css('color','red')

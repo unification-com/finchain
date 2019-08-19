@@ -1,30 +1,21 @@
-function FinchainEventContract(_contractAddress, _web3ProviderUrl, _abi) {
+var ether = require('../finchain-oracle-service/src/ethereum.js');
 
-    let abi = _abi.replace(/\\(.)/mg, "$1");
 
-    this.web3js = null;
-    this.contractAddress = _contractAddress;
-    this.abi = JSON.parse(abi);
+ether.dis.watch(function (error,result) {
+    if (!error){
+        ticker1 = result.args._ticker1;
+        ticker2 = result.args._ticker2;
+        ticker3 = result.args._ticker3;
+        price1 = result.args._price1;
+        price2 = result.args._price2;
+        price3 = result.args._price3;
 
-    let self = this;
+        $("#oracle_1_ticker").text(ticker1);
+        $('#oracle_1_price').text("idk");          
+        $('#oracle_2_ticker').text(ticker2);
+        $('#oracle_2_price').text(price2);
+        $('#oracle_3_ticker').text(ticker3);
+        $('#oracle_3_price').text(price3);
 
-    this.web3js = new Web3(new Web3.providers.HttpProvider(_web3ProviderUrl));
-
-    this.FinchainContract = new this.web3js.eth.Contract(this.abi, this.contractAddress);
-
-}
-
-FinchainContract.prototype.emitEvent = function(_callback) {
-
-    let self = this;
-    var event = FinchainContract.discrepency();
-
-    event.watch(function(error, result){
-        if (!error)
-            {
-                _callback(result);
-            } else {
-                console.log(error);
-            }
-    });
-}
+    }
+  });
