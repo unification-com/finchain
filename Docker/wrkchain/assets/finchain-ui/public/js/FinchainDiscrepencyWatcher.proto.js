@@ -15,18 +15,25 @@ function FinchainDiscrepencyWatcher(_contractAddress,
                                                        this.contractAddress);
 }
 
-FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_callback) {
+FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_ticker, _callback) {
 
   let self = this;
+  let tickerHash = null;
+  if(_ticker != null) {
+      tickerHash = Web3.utils.soliditySha3(_ticker);
+  }
 
   this.getCurrentBlockNumber().then(blockNumber => {
 
-    let fromBlock = blockNumber -10;
+    let fromBlock = blockNumber -248; //blocks from last hour(ish) @ 15 sec/block
     if(fromBlock < 0) {
       fromBlock = 0;
     }
 
+    let noToReturn = 20;
+
     self.finchainContract.getPastEvents('discrepancy', {
+      filter: {_tickerHash: tickerHash},
       fromBlock: fromBlock,
       toBlock: 'latest'
     }, (error, events) => {
@@ -38,7 +45,46 @@ FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_callback
            _callback(false, error);
         }
       } else {
-        let latestEvent = events[events.length - 1]
+         let latestEvent = events.slice(Math.max(events.length - noToReturn, 1))
+         self.lastEvent = latestEvent;
+        _callback(true, latestEvent);
+      }
+    });
+    return;
+  });
+}
+
+FinchainDiscrepencyWatcher.prototype.getLatestStocks = function(_ticker, _callback) {
+
+  let self = this;
+  let tickerHash = null;
+  if(_ticker != null) {
+      tickerHash = Web3.utils.soliditySha3(_ticker);
+  }
+
+  this.getCurrentBlockNumber().then(blockNumber => {
+
+    let fromBlock = blockNumber -248; //blocks from last hour(ish) @ 15 sec/block
+    if(fromBlock < 0) {
+      fromBlock = 0;
+    }
+
+    let noToReturn = 20;
+
+    self.finchainContract.getPastEvents('stockData', {
+      filter: {_tickerHash: tickerHash},
+      fromBlock: fromBlock,
+      toBlock: 'latest'
+    }, (error, events) => {
+      if(error) {
+        console.log("error", error);
+        if(self.lastEvent != null) {
+           _callback(true, self.lastEvent);
+        } else {
+           _callback(false, error);
+        }
+      } else {
+        let latestEvent = events.slice(Math.max(events.length - noToReturn, 1))
         self.lastEvent = latestEvent;
         _callback(true, latestEvent);
       }
@@ -50,4 +96,15 @@ FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_callback
 FinchainDiscrepencyWatcher.prototype.getCurrentBlockNumber = async function () {
   let blockNumber = await this.web3js.eth.getBlockNumber();
   return blockNumber;
+}
+
+FinchainDiscrepencyWatcher.prototype.getSource = function(_oracle) {
+    switch(_oracle) {
+        case '0x743454EE5c097E56D0470C09B6c23880356Ce5FB':
+            return 'Alpha Vantage';
+        case '0x6C45443De823a45e8f7204F1E69428E9AB42dd08':
+            return 'World Trading Data';
+        case '0x36D82EeF3Ce9897b0073116F29E28F6E149757d0':
+            return 'IEX';
+    }
 }

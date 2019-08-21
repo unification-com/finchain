@@ -2,6 +2,28 @@ version: '3.3'
 
 services:
   # UND devnet services
+  mainchain-dev-rpc:
+    hostname: mainchain-dev-rpc
+    build:
+      context: Docker/und_devnet
+      dockerfile: validator/Dockerfile
+      args:
+        privatekey: 62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899
+        password: nope
+        SUBNET_IP: ${SUBNET_IP}
+    container_name: mainchain-dev-rpc
+    command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-rpc" -networkid 50010 --port 30400 --syncmode="full" --nodiscover --rpc --rpccorsdomain "*" --rpcaddr 0.0.0.0 --rpcport 8101 --rpcvhosts "*" --ws --wsaddr 0.0.0.0 --wsport 8111 --wsorigins "*"
+    ports:
+      - 30400:30400/tcp
+      - 8101:8101/tcp
+      - 8111:8111/tcp
+    expose:
+      - 30400
+      - 8101
+      - 8111
+    networks:
+      wrkchainnet:
+        ipv4_address: ${SUBNET_IP}.11
   mainchain-dev-validator-1:
     hostname: mainchain-dev-validator-1
     build:
@@ -12,15 +34,11 @@ services:
         password: pass
         SUBNET_IP: ${SUBNET_IP}
     container_name: mainchain-dev-validator-1
-    command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-validator-1" --password /root/.accountpassword --networkid 50010 --port 30401 --mine --gasprice "1" --targetgaslimit "420000000" --etherbase "0x6C45443De823a45e8f7204F1E69428E9AB42dd08" --unlock "0x6C45443De823a45e8f7204F1E69428E9AB42dd08" --syncmode="full" --nodekey="/root/.und_mainchain/bootnode_keys/0x6C45443De823a45e8f7204F1E69428E9AB42dd08.key" --nodiscover --rpc --rpccorsdomain "*" --rpcaddr 0.0.0.0 --rpcport 8101 --rpcvhosts "*" --ws --wsaddr 0.0.0.0 --wsport 8111 --wsorigins "*"
+    command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-validator-1" --password /root/.accountpassword --networkid 50010 --port 30401 --mine --gasprice "1" --targetgaslimit "420000000" --etherbase "0x6C45443De823a45e8f7204F1E69428E9AB42dd08" --unlock "0x6C45443De823a45e8f7204F1E69428E9AB42dd08" --syncmode="full" --nodekey="/root/.und_mainchain/bootnode_keys/0x6C45443De823a45e8f7204F1E69428E9AB42dd08.key" --nodiscover
     ports:
       - 30401:30401/tcp
-      - 8101:8101/tcp
-      - 8111:8111/tcp
     expose:
       - 30401
-      - 8101
-      - 8111
     networks:
       wrkchainnet:
         ipv4_address: ${SUBNET_IP}.12
@@ -66,14 +84,14 @@ services:
   mainchain-dev-explorer:
     hostname: mainchain-dev-explorer
     depends_on:
-      - mainchain-dev-validator-1
+      - mainchain-dev-rpc
     ports:
       - 8080:8080
     build:
       context: Docker/und_devnet
       dockerfile: explorer/Dockerfile
       args:
-        mainchain_rpc: "${SUBNET_IP}.12:8101"
+        mainchain_rpc: "${SUBNET_IP}.11:8101"
     container_name: mainchain-dev-explorer
     expose:
       - 8080
@@ -188,8 +206,8 @@ services:
     networks:
       wrkchainnet:
         ipv4_address: ${SUBNET_IP}.27
-  finchain-validator-ui:
-    hostname: finchain-validator-ui
+  finchain-ui:
+    hostname: finchain-ui
     depends_on:
       - finchain-rpc
     ports:
@@ -197,7 +215,23 @@ services:
     build:
       context: Docker/wrkchain
       dockerfile: wrkchain_validator_ui/Dockerfile
-    container_name: finchain-validator-ui
+      args:
+        MAINCHAIN_EXPLORER_URL: "http://localhost:8080"
+        MAINCHAIN_WEB3_PROVIDER_URL: "http://${SUBNET_IP}.11:8101"
+        WRKCHAIN_NETWORK_ID: 2339117895
+        WRKCHAIN_ROOT_WRITE_TIMEOUT: 30
+        WRKCHAIN_WEB3_PROVIDER_URL: "http://${SUBNET_IP}.25:8547"
+        WRKCHAIN_RPC_HOST: "${SUBNET_IP}.25"
+        WRKCHAIN_RPC_PORT: 8547
+        WRKCHAIN_VALIDATOR_SERVICE_PORT: 4040
+        ALPHAVANTAGE: ${ALPHAVANTAGE}
+        WORLDTRADING: ${WORLDTRADING}
+        IEX: ${IEX}
+        THRESHOLD: ${THRESHOLD}
+        TRACKED_TICKERS: ${TRACKED_TICKERS}
+        UPDATE_TIME: ${UPDATE_TIME}
+        LEGACY_WRKCHAIN_ROOT: ${LEGACY_WRKCHAIN_ROOT}
+    container_name: finchain-ui
     expose:
       - 4040
     networks:

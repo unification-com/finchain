@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title><%= WRKCHAIN_NAME%> Block Event Listener</title>
+    <title><%= WRKCHAIN_NAME%> Stock Event Listener</title>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
@@ -21,7 +21,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
           <ul class="navbar-nav mr-auto">
-            <li class="nav-item"><a class="nav-link" href="/">Event Listener</a></li>
+            <li class="nav-item active"><a class="nav-link" href="/">Stock Watcher</a></li>
+            <li class="nav-item"><a class="nav-link" href="/wrkoracle">WRKOracle Watcher</a></li>
+            <li class="nav-item"><a class="nav-link" href="/validate">WRKChain Block Validation</a></li>
           </ul>
         </div>
       </nav>
@@ -30,43 +32,67 @@
     <!-- Begin page content -->
     <main role="main" class="container">
         <br>
-    <h1 class="mt-5">Block Listener</h1>
+    <h1 class="mt-5">Stock Listener</h1>
 
     <p class="lead">
       Check in here to see discrepencies between different sources.
-      <br>
-      <strong>Next check:</strong> <span id="next_block"><%= UPDATE_TIME %></span>
-            
     </p>
         <br>
     <p id="no_data"></p>
 
     <div id="oracle_container">
 
-      <h2>Discrepency found : <span id="is_found"></span></h2>
-      <table>
-        <tr>
-            <td><strong>Oracle #1: </strong></td>
-          <td><span id="oracle_1_ticker"><%= TICKER1 %></span> <span id="oracle_1_price"><%= PRICE1 %></span> </td>
-        <tr>
-        <tr>
-          <td><strong>Oracle #2: </strong></td>
-          <td><span id="oracle_2_ticker"><%= TICKER2 %></span> <span id="oracle_2_price"><%= PRICE2 %></span></td>
-        <tr>
-        <tr>
-          <td><strong>Oracle #3:</strong> </td>
-          <td><span id="oracle_3_ticker"><%= TICKER3 %></span> <span id="oracle_3_price"><%= PRICE3 %></span></td>
-        <tr>
-        <tr>
-        <td><strong>Transaction Hash: </strong> </td>
-        <td><span id="txhash"><%= TXHASH %></span></td>
-        <tr>
-        <tr>
-        <td><strong>Time Found:</strong> </td>
-        <td><span id="date"><%= DATE %></span></td>
-        
-      </table>
+        <p>Track:
+            <select id="tracker_select">
+                <option value="all">All</option>
+            <% for(var i=0; i < TRACKED_TICKERS.length; i++) {%>
+                <option value="<%= TRACKED_TICKERS[i] %>" <% if(TRACKED_TICKERS[i] == TICKER) { %>selected="selected" <% } %>>
+                    <%= TRACKED_TICKERS[i] %>
+                </option>
+            <% } %>
+            </select>
+        </p>
+
+
+        <div>
+            <h2>Latest Stocks Submitted</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th style="width: 70px;">Ticker</th>
+                    <th style="width: 70px;">Price</th>
+                    <th style="width: 180px;">Time</th>
+                    <th style="width: 150px;">Oracle</th>
+                </tr>
+                </thead>
+                <tbody id="stock_table">
+
+                </tbody>
+            </table>
+
+        </div>
+
+      <div>
+            <h2>Discrepancies found: Threshold $<%= THRESHOLD / 100%></h2>
+            <table>
+                <thead>
+                <tr>
+                    <th style="width: 50px;">Ticker</th>
+                    <th style="width: 150px;">Alpha Vantage</th>
+                    <th style="width: 150px;">World Trading Data</th>
+                    <th style="width: 150px;">IEX</th>
+                    <th style="width: 170px;">Time</th>
+                </tr>
+                </thead>
+                <tbody id="disc_table">
+
+                </tbody>
+            </table>
+
+        </div>
     </div>
+
+
 
     </main>
 
@@ -86,53 +112,124 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
 
 <script type="text/javascript" src="js/web3.min.js"></script>
-    <script type="text/javascript" src="js/Finchainevents.proto.js"></script>
+    <script type="text/javascript" src="js/FinchainDiscrepencyWatcher.proto.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
 
 
 <script type="text/javascript">
 
-    $(document).ready(function () {
+     $(document).ready(function () {
 
-        $('#no_data').hide();
-        $('#oracle_container').show();
-        
-        setInterval(function(){
-            nextCheck();
-        }, 1000);
+        let tm = <%= UPDATE_TIME%>;
+        let tmObj = secondsToTime(tm)
+        $('#next_check').text(tmObj.h + ":" + tmObj.m + ":" + tmObj.s)
 
-        showEvent();
-        setInterval(function(){
-            showEvent();
-        }, 1000 );
+        <% if (locals.TICKER) { %>
+        let ticker = "<%= TICKER%>";
+        <% } else { %>
+        let ticker = null;
+        <% } %>
 
-        function showEvent() {
-          
-          if(FOUND == "true"){
+        let finchainDiscrepencyWatcher = new FinchainDiscrepencyWatcher('<%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%>',
+                                                                        '<%= WRKCHAIN_WEB3_PROVIDER_URL%>',
+                                                                         <%- JSON.stringify(FINCHAIN_ORACLE_ABI)%>);
+        updateWatcher();
 
-              document.getElementById("is_found").innerHTML = "YES";
-              $('#is_found').text(FOUND);
-              $('#oracle_1_ticker').text(TICKER1);
-              $('#oracle_1_price').text(PRICE1);          
-              $('#oracle_2_ticker').text(TICKER2);
-              $('#oracle_2_price').text(PRICE2);
-              $('#oracle_3_ticker').text(TICKER3);
-              $('#oracle_3_price').text(PRICE3);
-              $('#txhash').text(TXHASH)
-          }
-              
-      }
+        function updateWatcher() {
+            $('#status').text("Fetching data");
+            $('#next_check_secs').text(<%= UPDATE_TIME%>);
+            finchainDiscrepencyWatcher.getLatestDiscrepencies(ticker, function(success, data) {
+                if(success && data != undefined) {
+                    $('#disc_table').html('');
+                    for (i = 0; i < data.length; i++) {
+                        let evnt = data[i];
+                        let trHtml = '<tr>';
+                        trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
+                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price1) / 100 + '</td>';
+                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price2) / 100 + '</td>';
+                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price3) / 100 + '</td>';
+                        trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
+                        trHtml += '</tr>';
 
-        function nextCheck() {
-            let current = parseInt($('#next_block').text());
-            let next = current - 1;
-            if(next < 0) {
-                next = <%= UPDATE_TIME %>;
-            }
-            $('#next_block').text(next)
-            $('#next_block').css('color','red')
+                        $('#disc_table').append(trHtml);
+                    }
+                } else {
+                    console.log(data);
+                    $('#status').text("Please refresh to try again");
+                }
+            });
+
+            finchainDiscrepencyWatcher.getLatestStocks(ticker, function(success, data) {
+                if(success && data != undefined) {
+                    $('#stock_table').html('');
+                    for (i = 0; i < data.length; i++) {
+                        let evnt = data[i];
+
+                        let trHtml = '<tr>';
+                        trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
+                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price) / 100 + '</td>';
+                        trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
+                        trHtml += '<td>' + finchainDiscrepencyWatcher.getSource(evnt.returnValues._from) + '</td>';
+                        trHtml += '</tr>';
+
+                        $('#stock_table').append(trHtml);
+                    }
+                } else {
+                    console.log(data);
+                    $('#status').text("Please refresh to try again");
+                }
+            });
+
         }
 
+        function timeConverter(UNIX_timestamp){
+            var a = new Date(UNIX_timestamp * 1000);
+            var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            var year = a.getFullYear();
+            var month = months[a.getMonth()];
+            var date = a.getDate();
+            var hour = a.getHours();
+            var min = a.getMinutes();
+            var sec = a.getSeconds();
+            if(hour == 0) {
+                hour = '00';
+            }
+            if(min == 0) {
+                min = '00';
+            }
+            if(sec == 0) {
+                sec = '00';
+            }
+            var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+            return time;
+        }
+
+        function secondsToTime(secs) {
+            secs = Math.round(secs);
+            var hours = Math.floor(secs / (60 * 60));
+
+            var divisor_for_minutes = secs % (60 * 60);
+            var minutes = Math.floor(divisor_for_minutes / 60);
+
+            var divisor_for_seconds = divisor_for_minutes % 60;
+            var seconds = Math.ceil(divisor_for_seconds);
+
+            var obj = {
+                "h": hours,
+                "m": minutes,
+                "s": seconds
+            };
+            return obj;
+        }
+
+        $('#tracker_select').change(function(){
+            let ticker = $("#tracker_select option:selected").val();
+            if(ticker == "all") {
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port;
+            } else {
+                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker;
+            }
+        });
     });
 </script>
 </body>
