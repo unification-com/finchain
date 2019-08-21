@@ -2,12 +2,17 @@ function WRKChainRoot(_wrkchainRootContractAddress,
                        _mainchainWeb3ProviderUrl,
                        _wrkchainWeb3ProviderUrl,
                        _wrkchainRootAbi,
-                       _wrkchainNetworkId) {
+                       _wrkchainNetworkId,
+                       _legacyWrkchainRoot) {
 
   this.web3jsMainchain = null;
   this.contractAddress = _wrkchainRootContractAddress;
   this.abi = _wrkchainRootAbi;
-  this.wrkchainNetworkId = parseInt(_wrkchainNetworkId);
+  wrkchainNetworkId = parseInt(_wrkchainNetworkId);
+  if(!_legacyWrkchainRoot) {
+      wrkchainNetworkId = numStringToBytes32(_wrkchainNetworkId)
+  }
+  this.wrkchainNetworkId = wrkchainNetworkId
 
   let self = this;
 
@@ -60,4 +65,22 @@ WRKChainRoot.prototype.getBlockHeaderFromRoot = function (_block_num) {
 WRKChainRoot.prototype.getCurrentBlockNumber = async function () {
   let blockNumber = await this.web3js.eth.getBlockNumber();
   return blockNumber;
+}
+
+function numStringToBytes32(num) {
+   var bn = new Web3.utils.BN(num).toTwos(256);
+   return padToBytes32(bn.toString(16));
+}
+
+function bytes32ToNumString(bytes32str) {
+    bytes32str = bytes32str.replace(/^0x/, '');
+    var bn = new Web3.utils.BN(bytes32str, 16).fromTwos(256);
+    return bn.toString();
+}
+
+function padToBytes32(n) {
+    while (n.length < 64) {
+        n = "0" + n;
+    }
+    return "0x" + n;
 }

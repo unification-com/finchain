@@ -28,6 +28,8 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 RUN go get github.com/ethereum/go-ethereum
 RUN go install github.com/ethereum/go-ethereum/cmd/geth
 
+RUN rm -rf /root/$WRKCHAIN_DATA_DIR && mkdir -p /root/$WRKCHAIN_DATA_DIR
+
 ADD ./assets/genesis.json /root/$WRKCHAIN_DATA_DIR/genesis.json
 COPY ./assets/node_keys /root/$WRKCHAIN_DATA_DIR/node_keys
 COPY ./assets/static-nodes.json /root/$WRKCHAIN_DATA_DIR/static-nodes.json
