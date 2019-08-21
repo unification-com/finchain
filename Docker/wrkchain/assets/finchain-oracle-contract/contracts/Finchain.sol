@@ -1,11 +1,8 @@
 pragma solidity >= 0.4.22;
-//pragma experimental ABIEncoderV2 ; //To remove or not remove?
 
 contract Finchain {
      address public owner;
      uint public threshold;
-     uint public noOfStocks;
-     uint shadowCounter; //used to keep track of how many of the oracles updated their stocks
 
      modifier isAuthorized() {
      require (whiteList[msg.sender] == true,
@@ -15,10 +12,9 @@ contract Finchain {
 
      //struct to store Stock data
      struct Stock {
-         string ticker;
          uint256 price;
          uint timestamp;
-         address sourceID;
+         bool sentStock;
      }
 
      //event to emit stock data
@@ -26,83 +22,72 @@ contract Finchain {
          address indexed _from,
          string _ticker,
          uint256 _price,
-         uint _timestamp
+         uint _timestamp,
+         bytes32 indexed _tickerHash
     );
 
     //event shows which stock has a possible arbitrage opportunity at a specified price
      event discrepancy(
-         string _ticker1,
+         string _ticker,
          uint256 _price1,
-         string _ticker2,
          uint256 _price2,
-         string _ticker3,
-         uint256 _price3
+         uint256 _price3,
+         uint _timestamp,
+         bytes32 indexed _tickerHash
     );
 
      mapping (address => bool) public whiteList; //whitelisted oracle addresses
      address[] public oracleArr; //array of oracle addresses
+     mapping (address => string) public sources;
      /*
      Mapping of oracle Addresses to stock arrays
      This allocates an array of stock structs to every oracle address
      */
-     mapping(address => Stock[]) public stocks;
+     mapping(bytes32 => mapping(address => Stock)) stocks;
 
-
-     constructor (uint _threshold, uint _noOfStocks) public {
+     constructor (uint _threshold) public {
         owner = msg.sender;
         whiteList[owner] = true;
         threshold = _threshold;
-        noOfStocks = _noOfStocks;
-        shadowCounter = 0;
-  }
+     }
 
      function updateStock (
          string memory _ticker,
-         uint256 _price,
-         uint i // array index, to be passed by nodeJS process
+         uint256 _price
          )
          public {
-         require (shadowCounter < 3, "Only three oracles currently permitted");
 
-         stocks[msg.sender].push(Stock({ticker: _ticker, price: _price, timestamp: now, sourceID: msg.sender }));
-         //emit stockData(msg.sender, _ticker, _price, now);
+         require(_price > 0, "stock price must be > 0");
 
-         if (i == (noOfStocks - 1)) shadowCounter++;
+         bytes32 tickerHash = keccak256(abi.encodePacked(_ticker));
 
-         if (shadowCounter >= 3){
-             shadowCounter = 0;
-             uint result = compareStocks(oracleArr[0], oracleArr[1], oracleArr[2]); //move on to next state
-             if (result < 101) {
-                emit discrepancy(
-                    stocks[oracleArr[0]][result].ticker,
-                    stocks[oracleArr[0]][result].price,
-                    stocks[oracleArr[1]][result].ticker,
-                    stocks[oracleArr[1]][result].price,
-                    stocks[oracleArr[2]][result].ticker,
-                    stocks[oracleArr[2]][result].price
-                    );
-                delete stocks[oracleArr[0]]; delete stocks[oracleArr[1]]; delete stocks[oracleArr[2]];
-             } else {
-                delete stocks[oracleArr[0]]; delete stocks[oracleArr[1]]; delete stocks[oracleArr[2]];
-             }
+         stocks[tickerHash][msg.sender] = Stock({price: _price, timestamp: now, sentStock:true });
+
+         if(stocks[tickerHash][oracleArr[0]].sentStock &&
+            stocks[tickerHash][oracleArr[1]].sentStock &&
+            stocks[tickerHash][oracleArr[2]].sentStock) {
+             compareStocks(_ticker, tickerHash);
          }
+
+         emit stockData(msg.sender, _ticker, _price, now, tickerHash);
      }
 
-     function compareStocks(address _source1, address _source2, address _source3) public returns (uint) {
+     function compareStocks(string memory _ticker, bytes32 tickerHash) public {
 
-         uint k; //counter
-         for (k; k < noOfStocks; ++k){ //can be top 100 stocks
-             uint p1 = stocks[_source1][k].price;
-             uint p2 = stocks[_source2][k].price;
-             uint p3 = stocks[_source3][k].price;
+         uint p1 = stocks[tickerHash][oracleArr[0]].price;
+         uint p2 = stocks[tickerHash][oracleArr[1]].price;
+         uint p3 = stocks[tickerHash][oracleArr[2]].price;
 
-             bool result = errorMargins(p1, p2, p3);
-
-             if (result == true) {
-                 return k;
-             }
+         if(errorMargins(p1, p2, p3)) {
+             emit discrepancy(
+                 _ticker,
+                 p1,
+                 p2,
+                 p3,
+                 now,
+                 tickerHash
+             );
          }
-         return 101;
      }
 
     function errorMargins(uint _p1, uint _p2, uint _p3) public view returns (bool) {
@@ -115,31 +100,27 @@ contract Finchain {
         uint temp1 = min (_p1, _p2);
         uint temp2 = min (temp1, _p3);
 
-        uint comp1 = ( ( (_p1 - temp2) * 100 )/ temp2 );
-        uint comp2 = ( ( (_p2 - temp2) * 100 )/ temp2 );
-        uint comp3 = ( ( (_p3 - temp2) * 100 )/ temp2 );
-
-        if ( comp1 > threshold) return true;
-        if ( comp2 > threshold) return true;
-        if ( comp3 > threshold) return true;
+        uint comp1 = _p1 - temp2;
+        if ( comp1 >= threshold) return true;
+        uint comp2 = _p2 - temp2;
+        if ( comp2 >= threshold) return true;
+        uint comp3 = _p3 - temp2;
+        if ( comp3 >= threshold) return true;
 
         return false;
 
     }
 
-     function addSource(address _source) public {
+     function addSource(address _oracle, string memory _source) public {
          require (msg.sender == owner,
             "Only owner can call this function.");
 
-         whiteList[_source] = true;
-         oracleArr.push(_source);
+         if(oracleArr.length < 3) {
+             whiteList[_oracle] = true;
+             oracleArr.push(_oracle);
+             sources[_oracle] = _source;
+         }
      }
-
-     function resetShadow() public isAuthorized {
-          shadowCounter = 0; 
-          delete stocks[oracleArr[0]]; delete stocks[oracleArr[1]]; delete stocks[oracleArr[2]];
-          }
-
 
      function configureErrorMargins(uint _threshold) public {
          require(msg.sender == owner, "Only the owner of this contract can modify values");
@@ -153,4 +134,7 @@ contract Finchain {
          return a < b ? a : b;
     }
 
+    function getSource(address _oracle) public view returns (string memory) {
+        return sources[_oracle];
+    }
 }
