@@ -1,6 +1,11 @@
 # Finchain Demo
 
-Docker and Docker Compose are required to run the Finchain demo.
+Docker and Docker Compose are required to run the localised, solf-contained
+Finchain demo.
+
+Copy `example.env` to `.env` and make any required changes. API keys are required
+for the demo to work - see `example.env` for details on where to obtain the 
+necessary API keys.
 
 Run the demo using:
 
@@ -30,6 +35,8 @@ Then set the `SUBNET_IP` variable to any other subnet. For example, run:
 ```bash
 SUBNET_IP=192.168.5 make
 ```
+
+or edit `.env` changing the value for `SUBNET_IP`
 
 to run the demo on the `192.168.5.0/24` subnet
 
