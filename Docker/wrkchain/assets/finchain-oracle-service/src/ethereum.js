@@ -5,10 +5,10 @@ const Web3 = require('web3');
 
 //research how to create arrays and abi strings for process.env
 var privateKeys = [
-  "cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898",
-  "226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c",
-  "62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899",
-  "5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42"
+  process.env.WRKCHAIN_PKEY_1,
+  process.env.WRKCHAIN_PKEY_2,
+  process.env.WRKCHAIN_PKEY_3,
+  process.env.WRKCHAIN_PKEY_4
 ];
 
 const abi = JSON.parse(process.env.FINCHAIN_ORACLE_ABI);

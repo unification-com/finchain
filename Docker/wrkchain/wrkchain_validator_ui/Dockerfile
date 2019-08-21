@@ -18,12 +18,14 @@ ARG IEX
 ARG THRESHOLD
 ARG TRACKED_TICKERS
 ARG UPDATE_TIME
+ARG WRKCHAIN_PKEY_1
+ARG WRKCHAIN_PKEY_2
+ARG WRKCHAIN_PKEY_3
+ARG WRKCHAIN_PKEY_4
 
 COPY ./assets/finchain-ui /root/finchain-ui
 COPY ./assets/finchain-oracle-contract /root/finchain-oracle-contract
 COPY ./assets/finchain-oracle-service /root/finchain-oracle-service
-
-RUN cd /root/finchain-oracle-contract && rm -rf build && npm install && truffle compile
 
 RUN cd /root/finchain-oracle-service && npm install && \
     cd /root/finchain-ui && npm install
@@ -45,7 +47,13 @@ RUN echo "MAINCHAIN_EXPLORER_URL=${MAINCHAIN_EXPLORER_URL}" >> /root/finchain-or
     echo "TRACKED_TICKERS=${TRACKED_TICKERS}" >> /root/finchain-oracle-contract/.env && \
     echo "UPDATE_TIME=${UPDATE_TIME}" >> /root/finchain-oracle-contract/.env && \
     echo "LEGACY_WRKCHAIN_ROOT=${LEGACY_WRKCHAIN_ROOT}" >> /root/finchain-oracle-contract/.env && \
+    echo "WRKCHAIN_PKEY_1=${WRKCHAIN_PKEY_1}" >> /root/finchain-oracle-contract/.env && \
+    echo "WRKCHAIN_PKEY_2=${WRKCHAIN_PKEY_2}" >> /root/finchain-oracle-contract/.env && \
+    echo "WRKCHAIN_PKEY_3=${WRKCHAIN_PKEY_3}" >> /root/finchain-oracle-contract/.env && \
+    echo "WRKCHAIN_PKEY_4=${WRKCHAIN_PKEY_4}" >> /root/finchain-oracle-contract/.env && \
     chmod +x /root/run_finchain_services.sh && \
     echo "alias ll='ls -la'" >> /root/.bashrc
+
+RUN cd /root/finchain-oracle-contract && rm -rf build && npm install && truffle compile
 
 CMD cd /root && ./run_finchain_services.sh
