@@ -4,5 +4,5 @@ require("dotenv").config();
 module.exports = function(deployer) {
   deployer.deploy(
     Finchain,
-    process.env.THRESHOLD
+    process.env.THRESHOLD)
 };
