@@ -39,12 +39,12 @@ exports.addSource = (i, source) => {
     });
   }
 
-exports.resetShadow = () => {
+exports.resetShadowCounter = (ticker) => {
   return new Promise ( (resolve,reject) => {
     account().then(account => {
-      myContract.resetShadow({from : account[0]}, (err) => {
+      myContract.resetShadowCounter(ticker, {from : account[0]}, (err) => {
         if (err === null) {
-          console.log("ShadowCounter Reset");
+          console.log("reset ShadowCounter for ", ticker);
           resolve();
         } else {
           reject(err);

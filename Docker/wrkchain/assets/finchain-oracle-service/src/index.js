@@ -2,12 +2,9 @@ var ether = require('./ethereum.js');
 var oracle = require('./oracle.js');
 
 isAdded = false;
-let trackedTickers = process.env.TRACKED_TICKERS.split(",");
-// clean any spaces
-for (i = 0; i < trackedTickers.length; i++) {
-    trackedTickers[i] = trackedTickers[i].trim();
-}
 let sources = [null, 'Alpha Vantage', 'World Trading', 'IEX Cloud']
+let tickers = process.env.TRACKED_TICKERS;
+let tickersArray = tickers.split(",");
 
 //The below function calls should be for initializing the contract and updating stock prices
 
@@ -26,36 +23,45 @@ function sleep(ms) {
 
 async function updateSmartContract() {
 
-    console.log("Waiting...\n");
-
-    
     if (isAdded == false) {
         await addAddressToWhitelist();
         await sleep(20000); //wait for block to porcess
     }
 
-    for (i = 0; i < trackedTickers.length; i++) {
-        k = 0;
-        let symbol = trackedTickers[i];
-        console.log("Symbol " + symbol);
-        var apidata = [oracle.alphaVantageApi(symbol),oracle.worldTradingDataApi(symbol), oracle.IEXApi(symbol)];
-        Promise.all(apidata).then(async (arr) => {
-            for (const item of arr) {
-                ++k;
-                let price = (Math.trunc(item[1] * 100));
-                if(price > 0 && k <= 3) {
-                    await ether.updateStock(item[0], price, k)
-                    .catch(console.error, async () => {
-
-                    });
-                } else {
-                    console.log("price is 0. Daily query allowance probably ran out for ", symbol, k, sources[k])
-                }
-                 await sleep(1000);
-            }
-        });
-        await sleep(5000);
+    console.log("Waiting...\n");
+    let receivedStocks = {};
+    for(i=0; i<tickersArray.length; i++) {
+        receivedStocks[tickersArray[i]] = 0;
     }
+
+
+    var apidata = [oracle.alphaVantageApi(tickers),oracle.worldTradingDataApi(tickers), oracle.IEXApi(tickers)];
+    Promise.all(apidata).then(async (dataArray) => {
+        let accIdx = 0;
+        for (const oracleRes of dataArray) {
+            accIdx++;
+            for(var i = 0; i < oracleRes.length; i++) {
+                let price = (Math.trunc(parseFloat(oracleRes[i].price) * 100));
+                let symbol = oracleRes[i].symbol;
+                let dateTime = oracleRes[i].datetime;
+                await ether.updateStock(symbol, price, accIdx)
+                    .catch(console.error, async () => {});
+                receivedStocks[symbol] = receivedStocks[symbol] + 1;
+                await sleep(1000);
+            }
+        }
+        console.log(receivedStocks);
+        for(i=0; i<tickersArray.length; i++) {
+            let ticker = tickersArray[i];
+            if(receivedStocks[ticker] < 3) {
+                await ether.resetShadowCounter(ticker);
+            }
+        }
+        console.log("wait for", process.env.UPDATE_TIME / 1000, "seconds until next poll...")
+    }).catch(console.error);
+
+
+
 }
 
 //run for the first time
