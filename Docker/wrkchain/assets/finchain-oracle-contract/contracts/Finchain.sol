@@ -23,7 +23,8 @@ contract Finchain {
          string _ticker,
          uint256 _price,
          uint _timestamp,
-         bytes32 indexed _tickerHash
+         bytes32 indexed _tickerHash,
+         string _source
     );
 
     //event shows which stock has a possible arbitrage opportunity at a specified price
@@ -69,7 +70,7 @@ contract Finchain {
              compareStocks(_ticker, tickerHash);
          }
 
-         emit stockData(msg.sender, _ticker, _price, now, tickerHash);
+         emit stockData(msg.sender, _ticker, _price, now, tickerHash, sources[msg.sender]);
      }
 
      function compareStocks(string memory _ticker, bytes32 tickerHash) public {

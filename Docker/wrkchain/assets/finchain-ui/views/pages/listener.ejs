@@ -169,7 +169,7 @@
                         trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
                         trHtml += '<td>$' + parseFloat(evnt.returnValues._price) / 100 + '</td>';
                         trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
-                        trHtml += '<td>' + finchainDiscrepencyWatcher.getSource(evnt.returnValues._from) + '</td>';
+                        trHtml += '<td>' + evnt.returnValues._source + '</td>';
                         trHtml += '</tr>';
 
                         $('#stock_table').append(trHtml);

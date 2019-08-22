@@ -97,14 +97,3 @@ FinchainDiscrepencyWatcher.prototype.getCurrentBlockNumber = async function () {
   let blockNumber = await this.web3js.eth.getBlockNumber();
   return blockNumber;
 }
-
-FinchainDiscrepencyWatcher.prototype.getSource = function(_oracle) {
-    switch(_oracle) {
-        case '0x743454EE5c097E56D0470C09B6c23880356Ce5FB':
-            return 'Alpha Vantage';
-        case '0x6C45443De823a45e8f7204F1E69428E9AB42dd08':
-            return 'World Trading Data';
-        case '0x36D82EeF3Ce9897b0073116F29E28F6E149757d0':
-            return 'IEX';
-    }
-}
