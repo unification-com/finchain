@@ -45,7 +45,8 @@ FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_ticker, 
            _callback(false, error);
         }
       } else {
-         let latestEvent = events.slice(Math.max(events.length - noToReturn, 1))
+         let latestEvent = events.slice(Math.max(events.length - noToReturn, 1));
+         latestEvent = latestEvent.reverse();
          self.lastEvent = latestEvent;
         _callback(true, latestEvent);
       }
@@ -84,7 +85,8 @@ FinchainDiscrepencyWatcher.prototype.getLatestStocks = function(_ticker, _callba
            _callback(false, error);
         }
       } else {
-        let latestEvent = events.slice(Math.max(events.length - noToReturn, 1))
+        let latestEvent = events.slice(Math.max(events.length - noToReturn, 1));
+        latestEvent = latestEvent.reverse();
         self.lastEvent = latestEvent;
         _callback(true, latestEvent);
       }

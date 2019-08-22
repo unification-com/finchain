@@ -4,6 +4,12 @@ contract Finchain {
      address public owner;
      uint public threshold;
 
+    modifier onlyOwner() {
+     require (msg.sender == owner,
+            "Only owner can call this function.");
+      _;
+     }
+
      modifier isAuthorized() {
      require (whiteList[msg.sender] == true,
         "Only authorized addresses can call this function.");
@@ -14,7 +20,6 @@ contract Finchain {
      struct Stock {
          uint256 price;
          uint timestamp;
-         bool sentStock;
      }
 
      //event to emit stock data
@@ -34,12 +39,14 @@ contract Finchain {
          uint256 _price2,
          uint256 _price3,
          uint _timestamp,
-         bytes32 indexed _tickerHash
+         bytes32 indexed _tickerHash,
+         uint _threshold
     );
 
      mapping (address => bool) public whiteList; //whitelisted oracle addresses
      address[] public oracleArr; //array of oracle addresses
      mapping (address => string) public sources;
+     mapping (bytes32 => uint) public shadowCounter;
      /*
      Mapping of oracle Addresses to stock arrays
      This allocates an array of stock structs to every oracle address
@@ -56,22 +63,26 @@ contract Finchain {
          string memory _ticker,
          uint256 _price
          )
-         public {
-
-         require(_price > 0, "stock price must be > 0");
+         public isAuthorized() {
 
          bytes32 tickerHash = keccak256(abi.encodePacked(_ticker));
 
-         stocks[tickerHash][msg.sender] = Stock({price: _price, timestamp: now, sentStock:true });
-
-         if(stocks[tickerHash][oracleArr[0]].sentStock &&
-            stocks[tickerHash][oracleArr[1]].sentStock &&
-            stocks[tickerHash][oracleArr[2]].sentStock) {
-             compareStocks(_ticker, tickerHash);
-         }
+         stocks[tickerHash][msg.sender] = Stock({price: _price, timestamp: now});
 
          emit stockData(msg.sender, _ticker, _price, now, tickerHash, sources[msg.sender]);
+
+         shadowCounter[tickerHash] = shadowCounter[tickerHash] + 1;
+
+         if(shadowCounter[tickerHash] == 3) {
+             compareStocks(_ticker, tickerHash);
+             shadowCounter[tickerHash] = 0;
+         }
      }
+
+    function resetShadowCounter(string memory _ticker) public isAuthorized() {
+        bytes32 tickerHash = keccak256(abi.encodePacked(_ticker));
+        shadowCounter[tickerHash] = 0;
+    }
 
      function compareStocks(string memory _ticker, bytes32 tickerHash) public {
 
@@ -86,7 +97,8 @@ contract Finchain {
                  p2,
                  p3,
                  now,
-                 tickerHash
+                 tickerHash,
+                 threshold
              );
          }
      }
@@ -112,15 +124,19 @@ contract Finchain {
 
     }
 
-     function addSource(address _oracle, string memory _source) public {
-         require (msg.sender == owner,
-            "Only owner can call this function.");
+     function addSource(address _oracle, string memory _source) public onlyOwner() {
+
 
          if(oracleArr.length < 3) {
              whiteList[_oracle] = true;
              oracleArr.push(_oracle);
              sources[_oracle] = _source;
          }
+     }
+
+    function setThreshold(uint _threshold) public onlyOwner() {
+        require(_threshold > 0, "threshold must be > 0");
+        threshold = _threshold;
      }
 
      function configureErrorMargins(uint _threshold) public {

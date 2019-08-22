@@ -73,7 +73,7 @@
         </div>
 
       <div>
-            <h2>Discrepancies found: Threshold $<%= THRESHOLD / 100%></h2>
+            <h2>Discrepancies found</h2>
             <table>
                 <thead>
                 <tr>
@@ -82,6 +82,7 @@
                     <th style="width: 150px;">World Trading Data</th>
                     <th style="width: 150px;">IEX</th>
                     <th style="width: 170px;">Time</th>
+                    <th style="width: 50px;">Threshold</th>
                 </tr>
                 </thead>
                 <tbody id="disc_table">
@@ -149,6 +150,7 @@
                         trHtml += '<td>$' + parseFloat(evnt.returnValues._price2) / 100 + '</td>';
                         trHtml += '<td>$' + parseFloat(evnt.returnValues._price3) / 100 + '</td>';
                         trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
+                        trHtml += '<td>$' + parseFloat(evnt.returnValues._threshold) / 100 + '</td>';
                         trHtml += '</tr>';
 
                         $('#disc_table').append(trHtml);
