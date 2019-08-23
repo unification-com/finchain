@@ -22,50 +22,16 @@ require('dotenv').config();
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
 
-exports.privateKeys = [
-  "cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898",
-  "226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c",
-  "62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899",
-  "5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42"
-];
-
 module.exports = {
   networks: {
        development: {
-        host: "localhost",     // Localhost (default: none)
-        port: 8547,            // Standard Ethereum port (default: none)
-        network_id: 2339117895,       // Any network (default: none)
-        provider: new HDWalletProvider(this.privateKeys, process.env.WRKCHAIN_RPC_PORT , 0 , 4), //zero indexed, 4 keys
+        host: process.env.WRKCHAIN_RPC_HOST,     // Localhost (default: none)
+        port: process.env.WRKCHAIN_RPC_PORT,            // Standard Ethereum port (default: none)
+        network_id: process.env.WRKCHAIN_NETWORK_ID,       // Any network (default: none)
+        provider: new HDWalletProvider(process.env.WRKCHAIN_PKEY_1, process.env.WRKCHAIN_WEB3_PROVIDER_URL), //zero indexed, 4 keys
         gas: 4500000,
        },
 
-    // Another network with more advanced options...
-    // advanced: {
-      // port: 8777,             // Custom port
-      // network_id: 1342,       // Custom network
-      // gas: 8500000,           // Gas sent with each transaction (default: ~6700000)
-      // gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
-      // from: <address>,        // Account to send txs from (default: accounts[0])
-      // websockets: true        // Enable EventEmitter interface for web3 (default: false)
-    // },
-
-    // Useful for deploying to a public network.
-    // NB: It's important to wrap the provider as a function.
-    // ropsten: {
-      // provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
-      // network_id: 3,       // Ropsten's id
-      // gas: 5500000,        // Ropsten has a lower block limit than mainnet
-      // confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-      // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
-      // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
-    // },
-
-    // Useful for private networks
-    // private: {
-      // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
-      // network_id: 2111,   // This network is yours, in the cloud.
-      // production: true    // Treats this network as if it was a public net. (default: false)
-    // }
   },
 
   // Set default mocha options here, use special reporters etc.

@@ -10,78 +10,171 @@ https://iexcloud.io/docs/api/#metadata
 require('dotenv').config();
 
 var request = require('request');
+const axios = require("axios");
 
-//array of symbols
-symbols = ['ATVI','ADBE', 'AMD', 'ALXN','ALGN','GOOGL','GOOG','AMZN','AAL','AMGN','ADI','AAPL','AMAT','ASML',
-    'ADSK','ADP', 'BIDU','BIIB','BMRN',	'BKNG',	'AVGO',	'CDNS','CELG','CERN','CHTR','CHKP','CTAS','CSCO','CTXS',
-    'CTSH',	'CMCSA','COST','CSX','CTRP','DLTR','EBAY','EA','EXPE','FB',	'FAST',	'FISV',	'FOX','FOXA','GILD','HAS',
-    'HSIC',	'IDXX',	'ILMN','INCY',	'INTC',	'INTU',	'ISRG',	'JBHT',	'JD','KLAC','LRCX','LBTYA',	'LBTYK','LULU',
-    'MAR','MXIM','MELI','MCHP',	'MU','MSFT','MDLZ','MNST','MYL','NTAP',	'NTES','NFLX','NVDA','NXPI','ORLY',
-    'PCAR','PAYX','PYPL','PEP','QCOM','REGN','ROST','SIRI','SWKS','SBUX','SYMC','SNPS','TMUS','TTWO','TSLA',
-    'TXN','KHC','ULTA','UAL','VRSN','VRSK',	'VRTX',	'WBA','WDAY','WDC','WLTW','WYNN','XEL','XLNX'];
+var avTest = {"Meta Data": {"1. Information": "Intraday (60min) open, high, low, close prices and volume","2. Symbol": "ATVI","3. Last Refreshed": "2019-08-19 15:30:00","4. Interval": "60min","5. Output Size": "Compact","6. Time Zone": "US/Eastern"},"Time Series (60min)": {"2019-08-19 15:30:00": {"1. open": "47.9800","2. high": "48.0050","3. low": "47.9000","4. close": "47.9200","5. volume": "607011"},"2019-08-19 14:30:00": {"1. open": "47.9500","2. high": "48.1100","3. low": "47.8700","4. close": "47.9900","5. volume": "488597"}}};
 
-exports.alphaVantageApi = (index) => {
+var wtdTest = {"symbols_requested":1,"symbols_returned":1,"data":[{"symbol":"ATVI","name":"Activision Blizzard, Inc.","currency":"USD","price":"47.92","price_open":"47.55","day_high":"48.30","day_low":"47.28","52_week_high":"84.68","52_week_low":"39.85","day_change":"1.26","change_pct":"2.70","close_yesterday":"46.66","market_cap":"36755881984","volume":"3685935","volume_avg":"7207366","shares":"766006976","stock_exchange_long":"NASDAQ Stock Exchange","stock_exchange_short":"NASDAQ","timezone":"EST","timezone_name":"America/New_York","gmt_offset":"-18000","last_trade_time":"2019-08-19 16:00:01"}]};
+
+var iexTest = [{"symbol":"ATVI","sector":"consumerdurables","securityType":"cs","bidPrice":0,"bidSize":0,"askPrice":0,"askSize":0,"lastUpdated":1566244800004,"lastSalePrice":47.975,"lastSaleSize":100,"lastSaleTime":1566244793901,"volume":119210}];
+
+exports.alphaVantageApi = (trackedTickers) => {
     return new Promise((resolve,reject) => {
+        let results = [];
+        let tickers = trackedTickers.split(",");
 
-        var alpha_uri = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol='+symbols[index]+'&interval=60min&apikey='+process.env.ALPHAVANTAGE;
+        const getStockData = (ticker) => {
+            return new Promise((resolve, reject) => {
+                let alpha_uri = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol='+ticker+'&interval=60min&apikey='+process.env.ALPHAVANTAGE;
+                console.log(alpha_uri);
+                axios.get(alpha_uri)
+                .then(response => {
+                    const data = response.data;
+                    if(data.hasOwnProperty("Time Series (60min)")) {
+                        var price = data["Time Series (60min)"];
+                        var idx = Object.keys(price)[0];
+                        return resolve({symbol: ticker, price: price[idx]['4. close'], datetime: Date.now()});
+                    } else {
+                        console.log("some error for", ticker);
+                        console.log(data);
+                        return resolve({symbol: ticker, price: 0, datetime: Date.now()})
+                    }
+                })
+                .catch(error => {
+                    return reject(error.message)
+                })
+            })
+        }
 
-        request.get(alpha_uri, function getData(error, response, body) {
-            if (error) reject(error); // Print the error if one occurred
-            else {  
-                var myJson = JSON.parse(body);
-                var price = myJson["Time Series (60min)"];
-                for (x in price){
-                    var alphaArr = [symbols[index], price[x]['4. close'], Date.now()];
-                    resolve(alphaArr);
-                }
-            }
-        });
-    })
+        const getStocks = async() => {
+            console.log('Alpha Vantage Start');
+            for (let ticker of tickers) {
+                console.log(ticker);
+                await getStockData(ticker).then((res) => {
+                    if(res.price > 0) {
+                        results.push(res);
+                    }
+                })
+             }
+             console.log('Alpha Vantage End');
+             resolve(results);
+        }
+
+        getStocks();
+
+    });
 }
 
 //function for World Trading API
-exports.worldTradingDataApi = (index) => {
+exports.worldTradingDataApi = (trackedTickers) => {
 
     return new Promise((resolve,reject) => {
+        let tickers = trackedTickers.split(",");
+        let results = [];
+        let tickerChunks = [];
 
-        var world_uri = 'https://api.worldtradingdata.com/api/v1/stock?symbol='+symbols[index]+'&api_token='+process.env.WORLDTRADING;
+        //split into chinks of 5. Max is 5 for WTD
+        while(tickers.length > 0) {
+            tickerChunks.push(tickers.splice(0, 5));
+        }
 
-        request.get(world_uri, function worldrequest(error, response, body) {
-            //proper formatting for World Trading API
-            if (error) reject(error); // Print the error if one occurred
-            else {  
-                
-                var myJson = JSON.parse(body);
-                var data = myJson["data"][0];
-                var array = [data['symbol'],data['price'],Date.now()];
-                
-                resolve(array);
-            }   
-        });
+        const getStockData = (tickers) => {
+            return new Promise((resolve, reject) => {
+                let world_uri = 'https://api.worldtradingdata.com/api/v1/stock?symbol='+tickers+'&api_token='+process.env.WORLDTRADING;
+                console.log(world_uri);
+                axios.get(world_uri)
+                .then(response => {
+                    const data = response.data;
+                    let r = [];
+                    if(data.hasOwnProperty("data")) {
+                        for(i=0; i < data['data'].length; i++) {
+                            let stockData = data['data'][i];
+                            r.push({symbol: stockData['symbol'], price: stockData['price'], datetime: Date.now()});
+                        }
+
+                    } else {
+                        console.log("data error:", data);
+                    }
+                    return resolve(r);
+                })
+                .catch(error => {
+                    return reject(error.message)
+                })
+            })
+        }
+
+        const getStocks = async() => {
+            console.log('WTD Start');
+            for (let tc of tickerChunks) {
+                let t = tc.join(",");
+                console.log(t);
+                await getStockData(t).then((res) => {
+                    for(let r of res) {
+                        results.push(r);
+                    }
+                })
+             }
+             console.log('WTD End');
+             resolve(results);
+        }
+
+        getStocks();
     });
 }
-
-this.worldTradingDataApi(4);
 
 //function for IEX cloud API
-exports.IEXApi = (index) => {
-    
+exports.IEXApi = (trackedTickers) => {
+
     return new Promise((resolve,reject) => {
+        let tickers = trackedTickers.split(",");
+        let results = [];
+        let tickerChunks = [];
 
-        var IEX_uri = 'https://cloud.iexapis.com/stable/tops?token='+process.env.IEX+'&symbols='+symbols[index];
+        //split into chinks of 10
+        while(tickers.length > 0) {
+            tickerChunks.push(tickers.splice(0, 10));
+        }
 
-        request.get(IEX_uri, function getData(error, response, body) {
-            if (error) reject(error);
-            else {
-                //proper formatting for IEX Cloud API
-                var myJson = JSON.parse(body);
-                var data = myJson[0];
-                var array = [data['symbol'], data['lastSalePrice'],Date.now()];
-                
-                resolve(array);
-            }
-        });
-        
+        const getStockData = (tickers) => {
+            return new Promise((resolve, reject) => {
+                var IEX_uri = 'https://cloud.iexapis.com/stable/tops?token='+process.env.IEX+'&symbols='+tickers;
+                console.log(IEX_uri);
+                axios.get(IEX_uri)
+                .then(response => {
+                    const data = response.data;
+                    let r = [];
+                    if(data.length > 0) {
+                        for(i=0; i < data.length; i++) {
+                            let stockData = data[i];
+                            r.push({symbol: stockData['symbol'], price: stockData['lastSalePrice'], datetime: Date.now()});
+                        }
+
+                    } else {
+                        console.log("data error:", data);
+                    }
+                    return resolve(r);
+                })
+                .catch(error => {
+                    return reject(error.message)
+                })
+            })
+        }
+
+        const getStocks = async() => {
+            console.log('IEX Start');
+            for (let tc of tickerChunks) {
+                let t = tc.join(",");
+                console.log(t);
+                await getStockData(t).then((res) => {
+                    for(let r of res) {
+                        results.push(r);
+                    }
+                })
+             }
+             console.log('IEX End');
+             resolve(results);
+        }
+
+        getStocks();
     });
 }
-

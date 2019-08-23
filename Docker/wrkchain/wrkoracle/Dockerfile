@@ -4,7 +4,7 @@ WORKDIR /root
 RUN mkdir /root/src
 RUN cd /root/src && git clone https://github.com/unification-com/oracle.git
 
-RUN cd /root/src/oracle && go install ./cmd/wrkoracle
+RUN cd /root/src/oracle && git checkout latest_wrkchain_root && go install ./cmd/wrkoracle
 
 COPY ./assets/run-wrkoracle.sh /root/src/run-wrkoracle.sh
 RUN chmod +x /root/src/run-wrkoracle.sh

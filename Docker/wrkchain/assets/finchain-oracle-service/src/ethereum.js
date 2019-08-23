@@ -5,324 +5,16 @@ const Web3 = require('web3');
 
 //research how to create arrays and abi strings for process.env
 var privateKeys = [
-  "cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898",
-  "226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c",
-  "62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899",
-  "5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42"
+  process.env.WRKCHAIN_PKEY_1,
+  process.env.WRKCHAIN_PKEY_2,
+  process.env.WRKCHAIN_PKEY_3,
+  process.env.WRKCHAIN_PKEY_4
 ];
 
-const abi = [
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "address"
-      },
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "stocks",
-    "outputs": [
-      {
-        "name": "ticker",
-        "type": "string"
-      },
-      {
-        "name": "price",
-        "type": "uint256"
-      },
-      {
-        "name": "timestamp",
-        "type": "uint256"
-      },
-      {
-        "name": "sourceID",
-        "type": "address"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "whiteList",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "threshold",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "oracleArr",
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "noOfStocks",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "name": "_threshold",
-        "type": "uint256"
-      },
-      {
-        "name": "_noOfStocks",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "name": "_from",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "name": "_ticker",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "name": "_price",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "name": "_timestamp",
-        "type": "uint256"
-      }
-    ],
-    "name": "stockData",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "name": "_ticker1",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "name": "_price1",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "name": "_ticker2",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "name": "_price2",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "name": "_ticker3",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "name": "_price3",
-        "type": "uint256"
-      }
-    ],
-    "name": "discrepancy",
-    "type": "event"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "_ticker",
-        "type": "string"
-      },
-      {
-        "name": "_price",
-        "type": "uint256"
-      },
-      {
-        "name": "i",
-        "type": "uint256"
-      }
-    ],
-    "name": "updateStock",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "_source1",
-        "type": "address"
-      },
-      {
-        "name": "_source2",
-        "type": "address"
-      },
-      {
-        "name": "_source3",
-        "type": "address"
-      }
-    ],
-    "name": "compareStocks",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "_p1",
-        "type": "uint256"
-      },
-      {
-        "name": "_p2",
-        "type": "uint256"
-      },
-      {
-        "name": "_p3",
-        "type": "uint256"
-      }
-    ],
-    "name": "errorMargins",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "_source",
-        "type": "address"
-      }
-    ],
-    "name": "addSource",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [],
-    "name": "resetShadow",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "_threshold",
-        "type": "uint256"
-      }
-    ],
-    "name": "configureErrorMargins",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-];
+const abi = JSON.parse(process.env.FINCHAIN_ORACLE_ABI);
 
 //Infura HDWalletProvider, passes in array of keys, RPC_port (or URL), array index to start at, and number of keys in array
-const provider = new HDWalletProvider(privateKeys, process.env.WRKCHAIN_RPC_PORT , 0 , 4);
+const provider = new HDWalletProvider(privateKeys, process.env.WRKCHAIN_WEB3_PROVIDER_URL , 0 , 4);
 //utilizing web3 protocol to call contract functions
 const web3 = new Web3(provider);
 //instantiation of contract at its address and with abi
@@ -331,12 +23,12 @@ exports.dis = myContract.discrepancy({}, {fromBlock: 0, toBlock: 'latest'});
 exports.data = myContract.stockData();
 
 //addSource function
-exports.addSource = (i) => {
+exports.addSource = (i, source) => {
   return new Promise( (resolve, reject) => {
     account().then(account => {
-      myContract.addSource(account[i], { from: account[0] }, (err) => { //where account[0] is the contract owner address
+      myContract.addSource(account[i], source, { from: account[0] }, (err) => { //where account[0] is the contract owner address
         if (err === null) {
-            console.log(account[i], " Added to Whitelist\n");
+            console.log(account[i], source, " Added to Whitelist\n");
             resolve();
           } else {
             console.log(account[i], " FAILED\n");
@@ -347,12 +39,12 @@ exports.addSource = (i) => {
     });
   }
 
-exports.resetShadow = () => {
+exports.resetShadowCounter = (ticker) => {
   return new Promise ( (resolve,reject) => {
     account().then(account => {
-      myContract.resetShadow({from : account[0]}, (err) => {
+      myContract.resetShadowCounter(ticker, {from : account[0]}, (err) => {
         if (err === null) {
-          console.log("ShadowCounter Reset");
+          console.log("reset ShadowCounter for ", ticker);
           resolve();
         } else {
           reject(err);
@@ -376,13 +68,13 @@ const account = () => {
 };
 
 //updateStock function
-exports.updateStock = (ticker, price, index, i) => {
+exports.updateStock = (ticker, price, i) => {
   return new Promise((resolve, reject) => {
     account().then(account => {
-      myContract.updateStock(ticker, price, index, { from: account[i] },
+      myContract.updateStock(ticker, price, { from: account[i] },
          (err, res) => {
+          console.log("attempt updateStock parameters: ", ticker, price, { from: account[i]})
           if (err === null) {
-            console.log("updateStock parameters: ", ticker, price, index, { from: account[i]})
             resolve(res);
           } else {
             console.log(err)
@@ -390,7 +82,7 @@ exports.updateStock = (ticker, price, index, i) => {
           }
         }
       );
-    });
+    }).catch(console.error, async () => { console.log("error from ", i)});
   });
 };
 
