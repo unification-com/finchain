@@ -56,6 +56,7 @@
             <thead>
             <tr>
                 <th><%= WRKCHAIN_NAME%> Block #</th>
+                <th style="width: 150px;">Validate</th>
                 <th>Mainchain Tx</th>
             </tr>
             </thead>
@@ -128,7 +129,8 @@
 
                     for(i=1; i<data.length; i++) {
                         let historyHtml = '<tr>';
-                        historyHtml += '<td><a href="/validate?block=' + data[i].returnValues._height + '">' + data[i].returnValues._height + '</a></td>';
+                        historyHtml += '<td><a href="/explorer/block/' + data[i].returnValues._height + '" target="_blank">' + data[i].returnValues._height + '</a></td>';
+                        historyHtml += '<td><a href="/validate?block=' + data[i].returnValues._height + '">validate</a></td>';
                         historyHtml += '<td><a href="<%= MAINCHAIN_EXPLORER_URL%>/tx/' + data[i].transactionHash + '" target="_blank">' + data[i].transactionHash + '</a></td>';
                         historyHtml += '</tr>';
                         $('#wrkoracle_history').append(historyHtml);
