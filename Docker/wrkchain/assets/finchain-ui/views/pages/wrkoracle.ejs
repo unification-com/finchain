@@ -51,6 +51,19 @@
         <strong>Next check:</strong> <span id="next_block"><%= WRKCHAIN_ROOT_WRITE_TIMEOUT%></span>
     </p>
 
+        <h2>WRKOracle Submission history</h2>
+        <table>
+            <thead>
+            <tr>
+                <th><%= WRKCHAIN_NAME%> Block #</th>
+                <th>Mainchain Tx</th>
+            </tr>
+            </thead>
+            <tbody id="wrkoracle_history">
+
+            </tbody>
+        </table>
+
     </main>
 
     <footer class="footer">
@@ -96,20 +109,30 @@
             $('#next_block').text(<%= WRKCHAIN_ROOT_WRITE_TIMEOUT%> + 1);
             wrkChainEventWatcher.getLatestRecordedHeader(function(success, data) {
                 if(success && data != undefined) {
+                    $('#wrkoracle_history').html('');
+                    let latestSubmission = data[0];
                     let now = new Date(Date.now());
-                    $('#block_num').text(data.returnValues._height);
+                    $('#block_num').text(latestSubmission.returnValues._height);
                     $('#block_time').text(now.toString());
-                    $('#tx').text(data.transactionHash);
-                    $('#tx').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/tx/' + data.transactionHash);
-                    $('#hash').text(data.returnValues._hash);
-                    $('#parent_hash').text(data.returnValues._parentHash);
-                    $('#receipt_root').text(data.returnValues._receiptRoot);
-                    $('#tx_root').text(data.returnValues._txRoot);
-                    $('#state_root').text(data.returnValues._stateRoot);
-                    $('#sealer').text(data.returnValues._blockSigner);
+                    $('#tx').text(latestSubmission.transactionHash);
+                    $('#tx').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/tx/' + latestSubmission.transactionHash);
+                    $('#hash').text(latestSubmission.returnValues._hash);
+                    $('#parent_hash').text(latestSubmission.returnValues._parentHash);
+                    $('#receipt_root').text(latestSubmission.returnValues._receiptRoot);
+                    $('#tx_root').text(latestSubmission.returnValues._txRoot);
+                    $('#state_root').text(latestSubmission.returnValues._stateRoot);
+                    $('#sealer').text(latestSubmission.returnValues._blockSigner);
                     $('#status').text("Success");
 
-                    $('#validate_link').attr('href','/validate?block=' + data.returnValues._height)
+                    $('#validate_link').attr('href','/validate?block=' + latestSubmission.returnValues._height);
+
+                    for(i=1; i<data.length; i++) {
+                        let historyHtml = '<tr>';
+                        historyHtml += '<td><a href="/validate?block=' + data[i].returnValues._height + '">' + data[i].returnValues._height + '</a></td>';
+                        historyHtml += '<td><a href="<%= MAINCHAIN_EXPLORER_URL%>/tx/' + data[i].transactionHash + '" target="_blank">' + data[i].transactionHash + '</a></td>';
+                        historyHtml += '</tr>';
+                        $('#wrkoracle_history').append(historyHtml);
+                    }
 
                 } else {
                     console.log(data);
