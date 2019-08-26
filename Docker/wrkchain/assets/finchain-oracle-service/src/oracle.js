@@ -18,10 +18,20 @@ var wtdTest = {"symbols_requested":1,"symbols_returned":1,"data":[{"symbol":"ATV
 
 var iexTest = [{"symbol":"ATVI","sector":"consumerdurables","securityType":"cs","bidPrice":0,"bidSize":0,"askPrice":0,"askSize":0,"lastUpdated":1566244800004,"lastSalePrice":47.975,"lastSaleSize":100,"lastSaleTime":1566244793901,"volume":119210}];
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 exports.alphaVantageApi = (trackedTickers) => {
     return new Promise((resolve,reject) => {
         let results = [];
         let tickers = trackedTickers.split(",");
+        let tickerChunks = [];
+
+        //split into chinks of 5. Max is 5 requests per minute for AV
+        while(tickers.length > 0) {
+            tickerChunks.push(tickers.splice(0, 5));
+        }
 
         const getStockData = (ticker) => {
             return new Promise((resolve, reject) => {
@@ -35,8 +45,9 @@ exports.alphaVantageApi = (trackedTickers) => {
                         var idx = Object.keys(price)[0];
                         return resolve({symbol: ticker, price: price[idx]['4. close'], datetime: Date.now()});
                     } else {
-                        console.log("some error for", ticker);
+                        console.log("AV Data error for:", ticker);
                         console.log(data);
+                        console.log("send zero values for AV");
                         return resolve({symbol: ticker, price: 0, datetime: Date.now()})
                     }
                 })
@@ -48,13 +59,20 @@ exports.alphaVantageApi = (trackedTickers) => {
 
         const getStocks = async() => {
             console.log('Alpha Vantage Start');
-            for (let ticker of tickers) {
-                console.log(ticker);
-                await getStockData(ticker).then((res) => {
-                    if(res.price > 0) {
-                        results.push(res);
-                    }
-                })
+            for (let tc of tickerChunks) {
+                for (let ticker of tc) {
+                    console.log(ticker);
+                    await getStockData(ticker).then((res) => {
+                        if(res.price > 0) {
+                            results.push(res);
+                        }
+                    })
+                 }
+                 if(tickerChunks.length > 1) {
+                     console.log("AV - wait 60 seconds until next batch");
+                     await sleep(60000);
+                 }
+
              }
              console.log('Alpha Vantage End');
              resolve(results);
@@ -93,7 +111,12 @@ exports.worldTradingDataApi = (trackedTickers) => {
                         }
 
                     } else {
-                        console.log("data error:", data);
+                        console.log("WTD data error:", data);
+                        console.log("send zero values for WTD");
+                        let dummyTickers = tickers.split(",");
+                        for(let t of dummyTickers) {
+                            r.push({symbol: t, price: 0.0, datetime: Date.now()});
+                        }
                     }
                     return resolve(r);
                 })
@@ -148,9 +171,13 @@ exports.IEXApi = (trackedTickers) => {
                             let stockData = data[i];
                             r.push({symbol: stockData['symbol'], price: stockData['lastSalePrice'], datetime: Date.now()});
                         }
-
                     } else {
-                        console.log("data error:", data);
+                        console.log("IEX data error:", data);
+                        console.log("send zero values for IEX");
+                        let dummyTickers = tickers.split(",");
+                        for(let t of dummyTickers) {
+                            r.push({symbol: t, price: 0.0, datetime: Date.now()});
+                        }
                     }
                     return resolve(r);
                 })
