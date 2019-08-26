@@ -25,12 +25,12 @@ FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_ticker, 
 
   this.getCurrentBlockNumber().then(blockNumber => {
 
-    let fromBlock = blockNumber - 500; //blocks from last hour(ish) @ 15 sec/block
+    let fromBlock = blockNumber - 1000; //blocks from last few hours(ish) @ 15 sec/block
     if(fromBlock < 0) {
       fromBlock = 0;
     }
 
-    let noToReturn = 30;
+    let noToReturn = 50;
 
     self.finchainContract.getPastEvents('discrepancy', {
       filter: {_tickerHash: tickerHash},
@@ -65,12 +65,12 @@ FinchainDiscrepencyWatcher.prototype.getLatestStocks = function(_ticker, _callba
 
   this.getCurrentBlockNumber().then(blockNumber => {
 
-    let fromBlock = blockNumber - 500; //blocks from last hour(ish) @ 15 sec/block
+    let fromBlock = blockNumber - 1000; //blocks from last few hours(ish) @ 15 sec/block
     if(fromBlock < 0) {
       fromBlock = 0;
     }
 
-    let noToReturn = 30;
+    let noToReturn = 50;
 
     self.finchainContract.getPastEvents('stockData', {
       filter: {_tickerHash: tickerHash},
