@@ -67,6 +67,8 @@
                     <th style="width: 200px;">Time</th>
                     <th style="width: 150px;">Oracle</th>
                     <th style="width: 70px;">Trading</th>
+                    <th style="width: 100px;">Block</th>
+                    <th style="width: 100px;">Tx</th>
                 </tr>
                 </thead>
                 <tbody id="stock_table">
@@ -92,6 +94,8 @@
                     <th style="width: 170px;">Time</th>
                     <th style="width: 50px;">Threshold</th>
                     <th style="width: 70px;">Trading</th>
+                    <th style="width: 100px;">Block</th>
+                    <th style="width: 100px;">Tx</th>
                 </tr>
                 </thead>
                 <tbody id="disc_table">
@@ -160,6 +164,7 @@
                     for (i = 0; i < data.length; i++) {
                         let evnt = data[i];
                         let timestamp = evnt.returnValues._timestamp;
+                        let txShort = evnt.transactionHash.substring(2, 10);
 
                         var display = false;
                         if(trading == 'closed') {
@@ -184,6 +189,11 @@
                             } else {
                                 trHtml += '<td>Closed</td>';
                             }
+
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank">' + evnt.blockNumber + '</a></td>';
+
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank">' + txShort + '</a></td>';
+
                             trHtml += '</tr>';
 
                             $('#disc_table').append(trHtml);
@@ -201,6 +211,7 @@
                     for (i = 0; i < data.length; i++) {
                         let evnt = data[i];
                         let timestamp = evnt.returnValues._timestamp;
+                        let txShort = evnt.transactionHash.substring(2, 10);
 
                         var display = false;
                         if(trading == 'closed') {
@@ -223,6 +234,9 @@
                             } else {
                                 trHtml += '<td>Closed</td>';
                             }
+
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank">' + evnt.blockNumber + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank">' + txShort + '</a></td>';
 
                             trHtml += '</tr>';
 
