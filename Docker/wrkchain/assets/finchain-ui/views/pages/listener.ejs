@@ -71,10 +71,11 @@
                     <th style="width: 70px;">Ticker</th>
                     <th style="width: 150px;">Price</th>
                     <th style="width: 200px;">Time</th>
-                    <th style="width: 150px;">Oracle</th>
+                    <th style="width: 150px;">Source</th>
                     <th style="width: 70px;">Trading</th>
                     <th style="width: 100px;">Block</th>
                     <th style="width: 100px;">Tx</th>
+                    <th style="width: 100px;">Oracle</th>
                 </tr>
                 </thead>
                 <tbody id="stock_table">
@@ -83,13 +84,13 @@
             </table>
 
             <% if (locals.TICKER) { %>
-            <canvas id="stockChart" width="400" height="400"></canvas>
+            <canvas id="stockChart" width="400" height="200"></canvas>
             <% } %>
 
         </div>
 
       <div>
-            <h2>Discrepancies found</h2>
+            <h2>Discrepancies Found</h2>
             <table>
                 <thead>
                 <tr>
@@ -118,7 +119,9 @@
 
     <footer class="footer">
     <div class="container">
-        <span class="text-muted"></span>
+        <span class="text-muted">
+            <h5>Stock Smart Contract: <a href="<%= WRKCHAIN_EXPLORER_URL%>/address/<%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%>" target="_blank"><%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%></a></h5>
+        </span>
     </div>
     </footer>
 
@@ -224,6 +227,7 @@
                         let evnt = data[i];
                         let timestamp = evnt.returnValues._timestamp;
                         let txShort = evnt.transactionHash.substring(2, 10);
+                        let fromShort = evnt.returnValues._from.substring(2, 10);
 
                         var display = false;
                         if(trading == 'closed') {
@@ -249,6 +253,7 @@
 
                             trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank">' + evnt.blockNumber + '</a></td>';
                             trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank">' + txShort + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/address/' + evnt.returnValues._from + '" target="_blank">' + fromShort + '</a></td>';
 
                             trHtml += '</tr>';
 

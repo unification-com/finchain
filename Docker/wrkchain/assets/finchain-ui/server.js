@@ -26,7 +26,6 @@ app.get('/', function(req, res) {
     if(req.query.timespan !== undefined) {
         timespan = parseInt(req.query.timespan);
     }
-    console.log(timespan);
 
     switch(timespan) {
         case 24:

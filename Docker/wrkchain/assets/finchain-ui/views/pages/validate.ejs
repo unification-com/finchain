@@ -36,7 +36,7 @@
     <h1 class="mt-5"><%= WRKCHAIN_NAME%> Block Validation</h1>
 
     <p class="lead">
-      Check <%= WRKCHAIN_NAME%> Block #<input type="text" id="block_num"> <button id="check_block">Check</button>
+      Check <%= WRKCHAIN_NAME%> Block #<input type="text" id="block_num"<% if (locals.BLOCK_NUM) { %> value="<%= BLOCK_NUM%>" <% } %>> <button id="check_block">Check</button>
     </p>
         <br>
 
@@ -180,10 +180,20 @@
         <% } %>
 
         function validateBlock(block_num) {
+            $('#no_data').text('Fetching data from WRKChain Root for Block #' + block_num);
+            $('#no_data').show();
+            $('#validation_container').hide();
+
             wrkChainRoot.validateBlock(block_num, function(block, root_data) {
 
+                if(root_data === undefined) {
+                  $('#no_data').text('No data currently stored in WRKChain Root for Block #' + block_num);
+                  $('#no_data').show();
+                  $('#validation_container').hide();
+                  return;
+                }
                 if(root_data.returnValues._hash == '0x0000000000000000000000000000000000000000000000000000000000000000') {
-                  $('#no_data').text('No data currently stored in Worckchain Root for Block #' + block_num);
+                  $('#no_data').text('No data currently stored in WRKChain Root for Block #' + block_num);
                   $('#no_data').show();
                   $('#validation_container').hide();
                   return;
