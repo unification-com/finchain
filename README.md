@@ -1,4 +1,4 @@
-# Finchain Demo
+# Finchain: A WRKChain Demo
 
 ## Public Finchain Demo
 
