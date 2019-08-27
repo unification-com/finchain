@@ -22,6 +22,21 @@ app.get('/', function(req, res) {
     if(selectedTicker === undefined || selectedTicker === null) {
         selectedTicker = trackedTickers[0];
     }
+    let timespan = 24;
+    if(req.query.timespan !== undefined) {
+        timespan = parseInt(req.query.timespan);
+    }
+    console.log(timespan);
+
+    switch(timespan) {
+        case 24:
+        case 48:
+        case 72:
+            break;
+        default:
+            timespan = 24;
+    }
+
     res.render('pages/listener',{
         WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
@@ -32,7 +47,8 @@ app.get('/', function(req, res) {
         TICKER: selectedTicker,
         THRESHOLD: process.env.THRESHOLD,
         TRADING: req.query.trading,
-        WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL
+        WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL,
+        TIMESPAN: timespan
     });
 });
 

@@ -15,15 +15,13 @@ function FinchainDiscrepencyWatcher(_contractAddress,
                                                        this.contractAddress);
 }
 
-FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_ticker, _callback) {
+FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_ticker, _timespan, _callback) {
 
   let self = this;
-  let tickerHash = null;
-  let numBlocks = 5760; // looking up all tickers. Just get last 24 hours
-  if(_ticker != null) {
-      tickerHash = Web3.utils.soliditySha3(_ticker);
-      numBlocks = 11520; //blocks from last 48 hours(ish) @ 15 sec/block
-  }
+  let timespan = _timespan * 3600.0
+  let numBlocks = parseInt(timespan / 15.0); // looking up all tickers. Just get last 24 hours
+  let tickerHash = Web3.utils.soliditySha3(_ticker);
+  let noToReturn = _timespan * 3;
 
   this.getCurrentBlockNumber().then(blockNumber => {
 
@@ -31,8 +29,6 @@ FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_ticker, 
     if(fromBlock < 0) {
       fromBlock = 0;
     }
-
-    let noToReturn = 72;
 
     self.finchainContract.getPastEvents('discrepancy', {
       filter: {_tickerHash: tickerHash},
@@ -57,15 +53,16 @@ FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_ticker, 
   });
 }
 
-FinchainDiscrepencyWatcher.prototype.getLatestStocks = function(_ticker, _callback) {
+FinchainDiscrepencyWatcher.prototype.getLatestStocks = function(_ticker, _timespan, _callback) {
 
   let self = this;
-  let tickerHash = null;
-  let numBlocks = 5760; // looking up all tickers. Just get last 24 hours
-  if(_ticker != null) {
-      tickerHash = Web3.utils.soliditySha3(_ticker);
-      numBlocks = 11520; //blocks from last 48 hours(ish) @ 15 sec/block
-  }
+  let timespan = _timespan * 3600.0
+  let numBlocks = parseInt(timespan / 15.0); // looking up all tickers. Just get last 24 hours
+  let tickerHash = Web3.utils.soliditySha3(_ticker);
+
+  let noToReturn = _timespan * 3;
+  console.log(numBlocks);
+  console.log(noToReturn);
 
   this.getCurrentBlockNumber().then(blockNumber => {
 
@@ -73,8 +70,6 @@ FinchainDiscrepencyWatcher.prototype.getLatestStocks = function(_ticker, _callba
     if(fromBlock < 0) {
       fromBlock = 0;
     }
-
-    let noToReturn = 72;
 
     self.finchainContract.getPastEvents('stockData', {
       filter: {_tickerHash: tickerHash},

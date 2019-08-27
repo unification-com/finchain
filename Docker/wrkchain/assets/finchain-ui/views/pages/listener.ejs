@@ -49,6 +49,12 @@
             <% } %>
             </select>
 
+            Time: <select id="timespan_select">
+                <option value="24"<% if (!locals.TIMESPAN || TIMESPAN ==24) { %>selected="selected" <% } %>>24Hrs</option>
+                <option value="48"<% if (locals.TIMESPAN && TIMESPAN ==48) { %>selected="selected" <% } %>>48Hrs</option>
+                <option value="72"<% if (locals.TIMESPAN && TIMESPAN ==72) { %>selected="selected" <% } %>>72Hrs</option>
+            </select>
+
             Show trading hours:
                 <select id="trading_select">
                     <option value="open"<% if (!locals.TRADING || TRADING =='open') { %>selected="selected" <% } %>>Open only</option>
@@ -150,6 +156,12 @@
         let trading = "open";
         <% } %>
 
+        <% if (locals.TIMESPAN) { %>
+        let timespan = <%= TIMESPAN%>;
+        <% } else { %>
+        let timespan = 24;
+        <% } %>
+
         let finchainDiscrepencyWatcher = new FinchainDiscrepencyWatcher('<%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%>',
                                                                         '<%= WRKCHAIN_WEB3_PROVIDER_URL%>',
                                                                          <%- JSON.stringify(FINCHAIN_ORACLE_ABI)%>);
@@ -158,7 +170,7 @@
         function updateWatcher() {
             $('#status').text("Fetching data");
             $('#next_check_secs').text(<%= UPDATE_TIME%>);
-            finchainDiscrepencyWatcher.getLatestDiscrepencies(ticker, function(success, data) {
+            finchainDiscrepencyWatcher.getLatestDiscrepencies(ticker, timespan, function(success, data) {
                 if(success && data != undefined) {
                     $('#disc_table').html('');
                     for (i = 0; i < data.length; i++) {
@@ -205,7 +217,7 @@
                 }
             });
 
-            finchainDiscrepencyWatcher.getLatestStocks(ticker, function(success, data) {
+            finchainDiscrepencyWatcher.getLatestStocks(ticker, timespan, function(success, data) {
                 if(success && data != undefined) {
                     $('#stock_table').html('');
                     for (i = 0; i < data.length; i++) {
@@ -305,24 +317,24 @@
         $('#tracker_select').change(function(){
             let ticker = $("#tracker_select option:selected").val();
             let trading = $("#trading_select option:selected").val();
-            if(ticker == "all") {
-                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?trading=" + trading;
-            } else {
-                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading;
-            }
+            let ts = $("#timespan_select option:selected").val();
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading + "&timespan=" + ts;
         });
 
         $('#trading_select').change(function(){
             let ticker = $("#tracker_select option:selected").val();
             let trading = $("#trading_select option:selected").val();
-            if(ticker == "all") {
-                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?trading=" + trading;
-            } else {
-                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading;
-            }
+            let ts = $("#timespan_select option:selected").val();
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading + "&timespan=" + ts;
         });
 
 
+        $('#timespan_select').change(function(){
+            let ticker = $("#tracker_select option:selected").val();
+            let trading = $("#trading_select option:selected").val();
+            let ts = $("#timespan_select option:selected").val();
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading + "&timespan=" + ts;
+        });
 
 
         function drawChart(data) {
