@@ -11,6 +11,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js" type="text/javascript"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -36,50 +37,69 @@
     <!-- Begin page content -->
     <main role="main" class="container">
         <br>
-    <h1 class="mt-5">Stock Listener</h1>
+    <h1 class="mt-5"><%= WRKCHAIN_NAME%> <i class="fa fa-dollar"></i>tock Watcher</h1>
 
     <div id="oracle_container">
 
-        <p>Track:
-            <select id="tracker_select">
-            <% for(var i=0; i < TRACKED_TICKERS.length; i++) {%>
-                <option value="<%= TRACKED_TICKERS[i] %>" <% if(TRACKED_TICKERS[i] == TICKER) { %>selected="selected" <% } %>>
-                    <%= TRACKED_TICKERS[i] %>
-                </option>
-            <% } %>
-            </select>
-
-            Time: <select id="timespan_select">
-                <option value="24"<% if (!locals.TIMESPAN || TIMESPAN ==24) { %>selected="selected" <% } %>>24Hrs</option>
-                <option value="48"<% if (locals.TIMESPAN && TIMESPAN ==48) { %>selected="selected" <% } %>>48Hrs</option>
-                <option value="72"<% if (locals.TIMESPAN && TIMESPAN ==72) { %>selected="selected" <% } %>>72Hrs</option>
-            </select>
-
-            Show trading hours:
-                <select id="trading_select">
-                    <option value="open"<% if (!locals.TRADING || TRADING =='open') { %>selected="selected" <% } %>>Open only</option>
-                    <option value="closed"<% if (locals.TRADING && TRADING =='closed') { %>selected="selected" <% } %>>Open and Closed</option>
-                </select>
-        </p>
-
-
+        <table>
+            <tbody>
+            <tr>
+                <td>
+                    Track:
+                </td>
+                <td>
+                    <select id="tracker_select" class="form-control form-control-sm">
+                        <% for(var i=0; i < TRACKED_TICKERS.length; i++) {%>
+                            <option value="<%= TRACKED_TICKERS[i] %>" <% if(TRACKED_TICKERS[i] == TICKER) { %>selected="selected" <% } %>>
+                                <%= TRACKED_TICKERS[i] %>
+                            </option>
+                        <% } %>
+                    </select>
+                </td>
+                <td> &nbsp; </td>
+                <td>
+                    Time:
+                </td>
+                <td>
+                    <select id="timespan_select" class="form-control form-control-sm">
+                        <option value="24"<% if (!locals.TIMESPAN || TIMESPAN ==24) { %>selected="selected" <% } %>>24Hrs</option>
+                        <option value="48"<% if (locals.TIMESPAN && TIMESPAN ==48) { %>selected="selected" <% } %>>48Hrs</option>
+                        <option value="72"<% if (locals.TIMESPAN && TIMESPAN ==72) { %>selected="selected" <% } %>>72Hrs</option>
+                    </select>
+                </td>
+                <td>  &nbsp; </td>
+                <td>
+                    Show trading hours:
+                </td>
+                <td>
+                    <select id="trading_select" class="form-control form-control-sm">
+                        <option value="open"<% if (!locals.TRADING || TRADING =='open') { %>selected="selected" <% } %>>Open only</option>
+                        <option value="closed"<% if (locals.TRADING && TRADING =='closed') { %>selected="selected" <% } %>>Open and Closed</option>
+                    </select>
+                </td>
+            </tr>
+            </tbody>
+        </table>
         <div>
             <h2>Latest Stocks Submitted<% if (locals.TICKER) { %>: <%= TICKER%> <% } %> (<span id="company_name"></span>)</h2>
-            <table>
+            <table class="table table-dark">
                 <thead>
                 <tr>
-                    <th style="width: 70px;">Ticker</th>
-                    <th style="width: 150px;">Price</th>
-                    <th style="width: 200px;">Time</th>
-                    <th style="width: 150px;">Source</th>
-                    <th style="width: 70px;">Trading</th>
-                    <th style="width: 100px;">Block</th>
-                    <th style="width: 100px;">Tx</th>
-                    <th style="width: 100px;">Oracle</th>
+                    <th style="width: 150px;" scope="col">Price</th>
+                    <th style="width: 200px;" scope="col">Time</th>
+                    <th style="width: 150px;" scope="col">Source</th>
+                    <th style="width: 70px;" scope="col">Trading</th>
+                    <th style="width: 100px;" scope="col">Block</th>
+                    <th style="width: 100px;" scope="col">Tx</th>
+                    <th style="width: 100px;" scope="col">Oracle</th>
                 </tr>
                 </thead>
                 <tbody id="stock_table">
-
+                    <tr>
+                        <td colspan="7">
+                            <div class="loader">Loading...</div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
 
@@ -91,22 +111,25 @@
 
       <div>
             <h2>Discrepancies Found</h2>
-            <table>
+            <table class="table table-dark">
                 <thead>
                 <tr>
-                    <th style="width: 50px;">Ticker</th>
-                    <th style="width: 150px;">Alpha Vantage</th>
-                    <th style="width: 150px;">World Trading</th>
-                    <th style="width: 150px;">IEX Cloud</th>
-                    <th style="width: 170px;">Time</th>
-                    <th style="width: 50px;">Threshold</th>
-                    <th style="width: 70px;">Trading</th>
-                    <th style="width: 100px;">Block</th>
-                    <th style="width: 100px;">Tx</th>
+                    <th style="width: 150px;" scope="col">Alpha Vantage</th>
+                    <th style="width: 150px;" scope="col">World Trading</th>
+                    <th style="width: 150px;" scope="col">IEX Cloud</th>
+                    <th style="width: 170px;" scope="col">Time</th>
+                    <th style="width: 50px;" scope="col">Threshold</th>
+                    <th style="width: 70px;" scope="col">Trading</th>
+                    <th style="width: 100px;" scope="col">Block</th>
+                    <th style="width: 100px;" scope="col">Tx</th>
                 </tr>
                 </thead>
                 <tbody id="disc_table">
-
+                    <tr>
+                        <td colspan="7">
+                            <div class="loader">Loading...</div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
 
@@ -117,12 +140,19 @@
 
     </main>
 
-    <footer class="footer">
-    <div class="container">
-        <span class="text-muted">
-            <h5>Stock Smart Contract: <a href="<%= WRKCHAIN_EXPLORER_URL%>/address/<%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%>" target="_blank"><%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%></a></h5>
-        </span>
-    </div>
+    <footer class="page-footer font-small pt-4">
+        <div class="container">
+            <div class="footer text-center py-3">
+                <span class="text-muted">
+                    Stock Smart Contract, Finchain Address: <a href="<%= WRKCHAIN_EXPLORER_URL%>/address/<%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%>" target="_blank"><%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%></a>
+                </span>
+            </div>
+
+            <!-- Copyright -->
+            <div class="footer-copyright text-center py-3">&copy; 2019
+                <a href="https://unification.com"> unification.com</a> | <a href="https://github.com/unification-com/finchain-demo">View on Github</a>
+            </div>
+        </div>
     </footer>
 
 <!-- jQuery library -->
@@ -132,7 +162,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
 
 <!-- Latest compiled JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.bundle.min.js"></script>
 
 <script type="text/javascript" src="js/web3.min.js"></script>
     <script type="text/javascript" src="js/FinchainDiscrepencyWatcher.proto.js"></script>
@@ -160,6 +190,8 @@
      }
 
      $(document).ready(function () {
+
+        $('[data-toggle="tooltip"]').tooltip();
 
         let companyName = tickerLookup["<%= TICKER%>"];
         $('#company_name').text(companyName);
@@ -213,7 +245,6 @@
 
                         if(display === true) {
                             let trHtml = '<tr>';
-                            trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
                             trHtml += '<td>$' + parseFloat(evnt.returnValues._price1) / 100 + '</td>';
                             trHtml += '<td>$' + parseFloat(evnt.returnValues._price2) / 100 + '</td>';
                             trHtml += '<td>$' + parseFloat(evnt.returnValues._price3) / 100 + '</td>';
@@ -226,15 +257,18 @@
                                 trHtml += '<td>Closed</td>';
                             }
 
-                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank">' + evnt.blockNumber + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block #' + evnt.blockNumber + ' in Finchain Explorer">' + evnt.blockNumber + '</a></td>';
 
-                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank">' + txShort + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Tx ' + txShort + ' in Finchain Explorer">' + txShort + '</a></td>';
 
                             trHtml += '</tr>';
 
                             $('#disc_table').append(trHtml);
                         }
                     }
+
+                    $('[data-toggle="tooltip"]').tooltip();
+
                 } else {
                     console.log(data);
                     $('#status').text("Please refresh to try again");
@@ -261,7 +295,6 @@
 
                         if(display === true) {
                             let trHtml = '<tr>';
-                            trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
                             trHtml += '<td>$' + parseFloat(evnt.returnValues._price) / 100 + '</td>';
                             trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
                             trHtml += '<td>' + evnt.returnValues._source + '</td>';
@@ -272,15 +305,16 @@
                                 trHtml += '<td>Closed</td>';
                             }
 
-                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank">' + evnt.blockNumber + '</a></td>';
-                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank">' + txShort + '</a></td>';
-                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/address/' + evnt.returnValues._from + '" target="_blank">' + fromShort + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block #' + evnt.blockNumber + ' in Finchain Explorer">' + evnt.blockNumber + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Tx ' + txShort + ' in Finchain Explorer">' + txShort + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/address/' + evnt.returnValues._from + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Address ' + evnt.returnValues._from + ' in Finchain Explorer">' + fromShort + '</a></td>';
 
                             trHtml += '</tr>';
 
                             $('#stock_table').append(trHtml);
                         }
                     }
+                    $('[data-toggle="tooltip"]').tooltip();
                     if(ticker !== null) {
                         drawChart(data);
                     }
@@ -315,9 +349,19 @@
         function isTradingHours(UNIX_timestamp) {
             var a = new Date(UNIX_timestamp * 1000);
             var hour = a.getHours();
+            var minutes = a.getMinutes();
             // NYSE trading times (09:30 - 16:00 = 13:30 - 20:00 GMT)
             if(hour >= 13 && hour <= 20) {
-                return true;
+                if(hour == 13 && minutes < 30) {
+                    return false;
+                } else {
+                    return true;
+                }
+                if(hour == 20 && minutes > 0) {
+                    return false;
+                } else {
+                    return true;
+                }
             }
             return false;
         }
@@ -493,15 +537,21 @@
                         xAxes: [{
                             ticks: {
                                 callback: function(value, index, values) {
+                                    let dateArray = value.split(" ");
+                                    let hour = parseInt(dateArray[3]);
                                     if(trading == 'closed') {
-                                        let dateArray = value.split(" ");
-                                        let hour = parseInt(dateArray[3]);
                                         if(hour >= 9 && hour <= 16) {
                                             return value + ' (open)';
                                         } else {
                                             return value + ' (closed)';
                                         }
                                     } else {
+                                        if(hour == 9 || hour == 10) {
+                                           return value + " (OPENING)";
+                                        }
+                                        if(hour == 16) {
+                                           return value + " (CLOSING)";
+                                        }
                                         return value;
                                     }
 

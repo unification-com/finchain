@@ -35,10 +35,25 @@
         <br>
     <h1 class="mt-5"><%= WRKCHAIN_NAME%> Block Validation</h1>
 
-    <p class="lead">
-      Check <%= WRKCHAIN_NAME%> Block #<input type="text" id="block_num"<% if (locals.BLOCK_NUM) { %> value="<%= BLOCK_NUM%>" <% } %>> <button id="check_block">Check</button>
-    </p>
-        <br>
+
+    <div class="form-group">
+        <table>
+            <tbody>
+            <tr>
+                <td>
+                    Check <%= WRKCHAIN_NAME%> Block #
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" id="block_num"<% if (locals.BLOCK_NUM) { %> value="<%= BLOCK_NUM%>" <% } %>>
+                </td>
+                <td>
+                    <button id="check_block" class="btn">Check</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
 
     <p id="no_data"></p>
 
@@ -48,7 +63,7 @@
 
       <h3>Block Hashes</h3>
 
-      <table>
+      <table class="table table-dark">
         <tr>
             <td><strong><%= WRKCHAIN_NAME%> actual: </strong></td>
           <td><span id="block_hash"></span></td>
@@ -65,7 +80,7 @@
 
       <h3>Parent Hash</h3>
 
-      <table>
+      <table class="table table-dark">
         <tr>
           <td><strong><%= WRKCHAIN_NAME%> actual: </strong></td>
           <td><span id="parent_block_hash"></span></td>
@@ -82,7 +97,7 @@
 
       <h3>Tx Merkle Root</h3>
 
-      <table>
+      <table class="table table-dark">
         <tr>
           <td><strong><%= WRKCHAIN_NAME%> actual:</strong> </td>
           <td><span id="block_tx_root"></span></td>
@@ -99,7 +114,7 @@
 
       <h3>State Merkle Root</h3>
 
-      <table>
+      <table class="table table-dark">
         <tr>
           <td><strong><%= WRKCHAIN_NAME%> actual:</strong> </td>
           <td><span id="block_state_root"></span></td>
@@ -116,7 +131,7 @@
 
       <h3>Receipts Merkle Root</h3>
 
-      <table>
+      <table class="table table-dark">
         <tr>
           <td><strong><%= WRKCHAIN_NAME%>: </strong></td>
           <td><span id="block_receipts_root"></span></td>
@@ -135,10 +150,13 @@
 
     </main>
 
-    <footer class="footer">
-    <div class="container">
-        <span class="text-muted"></span>
-    </div>
+    <footer class="page-footer font-small pt-4">
+        <div class="container">
+            <!-- Copyright -->
+            <div class="footer-copyright text-center py-3">&copy; 2019
+                <a href="https://unification.com"> unification.com</a> | <a href="https://github.com/unification-com/finchain-demo">View on Github</a>
+            </div>
+        </div>
     </footer>
 
 <!-- jQuery library -->
@@ -180,7 +198,7 @@
         <% } %>
 
         function validateBlock(block_num) {
-            $('#no_data').text('Fetching data from WRKChain Root for Block #' + block_num);
+            $('#no_data').html('<table class="table table-dark"><tr><td><div class="loader">Loading...</div></td></tr></table>');
             $('#no_data').show();
             $('#validation_container').hide();
 

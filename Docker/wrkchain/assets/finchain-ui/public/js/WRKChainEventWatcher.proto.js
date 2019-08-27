@@ -14,8 +14,6 @@ function WRKChainEventWatcher(_contractAddress,
   }
   this.wrkchainNetworkId = wrkchainNetworkId
 
-  console.log(wrkchainNetworkId);
-
   let self = this;
 
   this.web3js = new Web3(new Web3.providers.HttpProvider(_web3ProviderUrl));
