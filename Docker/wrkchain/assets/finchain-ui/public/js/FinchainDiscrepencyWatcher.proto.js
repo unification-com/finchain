@@ -61,8 +61,6 @@ FinchainDiscrepencyWatcher.prototype.getLatestStocks = function(_ticker, _timesp
   let tickerHash = Web3.utils.soliditySha3(_ticker);
 
   let noToReturn = _timespan * 3;
-  console.log(numBlocks);
-  console.log(noToReturn);
 
   this.getCurrentBlockNumber().then(blockNumber => {
 
