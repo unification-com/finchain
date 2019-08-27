@@ -64,7 +64,7 @@
 
 
         <div>
-            <h2>Latest Stocks Submitted<% if (locals.TICKER) { %>: <%= TICKER%> <% } %></h2>
+            <h2>Latest Stocks Submitted<% if (locals.TICKER) { %>: <%= TICKER%> <% } %> (<span id="company_name"></span>)</h2>
             <table>
                 <thead>
                 <tr>
@@ -141,7 +141,28 @@
 
 <script type="text/javascript">
 
+     var tickerLookup = {
+         "AAPL": "Apple Inc.",
+         "AMD": "Advanced Micro Devices,Inc.",
+         "AMZN": "Amazon.com, Inc.",
+         "CRWD": "CrowdStrike Holdings, Inc.",
+         "CSCO": "Cisco Systems, Inc.",
+         "EBAY": "eBay Inc.",
+         "FTI": "TechnipFMC",
+         "GOOGL": "Alphabet Inc.",
+         "HPQ": "HP Inc.",
+         "INTC": "Intel Corporation",
+         "MSFT": "Microsoft Corporation",
+         "PM": "Philip Morris International Inc.",
+         "SPLK": "Splunk Inc.",
+         "TSLA": "Tesla, Inc.",
+         "UBER": "Uber Technologies Inc."
+     }
+
      $(document).ready(function () {
+
+        let companyName = tickerLookup["<%= TICKER%>"];
+        $('#company_name').text(companyName);
 
         let tm = <%= UPDATE_TIME%>;
         let tmObj = secondsToTime(tm)
