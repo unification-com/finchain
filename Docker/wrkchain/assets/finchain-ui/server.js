@@ -18,6 +18,10 @@ let trackedTickers = process.env.TRACKED_TICKERS.split(",");
 
 // event listener page
 app.get('/', function(req, res) {
+    let selectedTicker = req.query.ticker;
+    if(selectedTicker === undefined || selectedTicker === null) {
+        selectedTicker = trackedTickers[0];
+    }
     res.render('pages/listener',{
         WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
@@ -25,8 +29,9 @@ app.get('/', function(req, res) {
         FINCHAIN_ORACLE_CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS,
         UPDATE_TIME: process.env.UPDATE_TIME / 1000,
         TRACKED_TICKERS: trackedTickers,
-        TICKER: req.query.ticker,
-        THRESHOLD: process.env.THRESHOLD
+        TICKER: selectedTicker,
+        THRESHOLD: process.env.THRESHOLD,
+        TRADING: req.query.trading
     });
 });
 

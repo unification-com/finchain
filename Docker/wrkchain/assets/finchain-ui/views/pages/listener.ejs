@@ -37,28 +37,27 @@
         <br>
     <h1 class="mt-5">Stock Listener</h1>
 
-    <p class="lead">
-      Check in here to see discrepencies between different sources.
-    </p>
-        <br>
-    <p id="no_data"></p>
-
     <div id="oracle_container">
 
         <p>Track:
             <select id="tracker_select">
-                <option value="all">All</option>
             <% for(var i=0; i < TRACKED_TICKERS.length; i++) {%>
                 <option value="<%= TRACKED_TICKERS[i] %>" <% if(TRACKED_TICKERS[i] == TICKER) { %>selected="selected" <% } %>>
                     <%= TRACKED_TICKERS[i] %>
                 </option>
             <% } %>
             </select>
+
+            Show trading hours:
+                <select id="trading_select">
+                    <option value="open"<% if (!locals.TRADING || TRADING =='open') { %>selected="selected" <% } %>>Open only</option>
+                    <option value="closed"<% if (locals.TRADING && TRADING =='closed') { %>selected="selected" <% } %>>Open and Closed</option>
+                </select>
         </p>
 
 
         <div>
-            <h2>Latest Stocks Submitted</h2>
+            <h2>Latest Stocks Submitted<% if (locals.TICKER) { %>: <%= TICKER%> <% } %></h2>
             <table>
                 <thead>
                 <tr>
@@ -66,6 +65,7 @@
                     <th style="width: 150px;">Price</th>
                     <th style="width: 200px;">Time</th>
                     <th style="width: 150px;">Oracle</th>
+                    <th style="width: 70px;">Trading</th>
                 </tr>
                 </thead>
                 <tbody id="stock_table">
@@ -86,10 +86,11 @@
                 <tr>
                     <th style="width: 50px;">Ticker</th>
                     <th style="width: 150px;">Alpha Vantage</th>
-                    <th style="width: 150px;">World Trading Data</th>
-                    <th style="width: 150px;">IEX</th>
+                    <th style="width: 150px;">World Trading</th>
+                    <th style="width: 150px;">IEX Cloud</th>
                     <th style="width: 170px;">Time</th>
                     <th style="width: 50px;">Threshold</th>
+                    <th style="width: 70px;">Trading</th>
                 </tr>
                 </thead>
                 <tbody id="disc_table">
@@ -138,6 +139,12 @@
         let ticker = null;
         <% } %>
 
+        <% if (locals.TRADING) { %>
+        let trading = "<%= TRADING%>";
+        <% } else { %>
+        let trading = "open";
+        <% } %>
+
         let finchainDiscrepencyWatcher = new FinchainDiscrepencyWatcher('<%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%>',
                                                                         '<%= WRKCHAIN_WEB3_PROVIDER_URL%>',
                                                                          <%- JSON.stringify(FINCHAIN_ORACLE_ABI)%>);
@@ -151,16 +158,35 @@
                     $('#disc_table').html('');
                     for (i = 0; i < data.length; i++) {
                         let evnt = data[i];
-                        let trHtml = '<tr>';
-                        trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
-                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price1) / 100 + '</td>';
-                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price2) / 100 + '</td>';
-                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price3) / 100 + '</td>';
-                        trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
-                        trHtml += '<td>$' + parseFloat(evnt.returnValues._threshold) / 100 + '</td>';
-                        trHtml += '</tr>';
+                        let timestamp = evnt.returnValues._timestamp;
 
-                        $('#disc_table').append(trHtml);
+                        var display = false;
+                        if(trading == 'closed') {
+                            display = true;
+                        } else {
+                            if(isTradingHours(timestamp)) {
+                                display = true;
+                            }
+                        }
+
+                        if(display === true) {
+                            let trHtml = '<tr>';
+                            trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price1) / 100 + '</td>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price2) / 100 + '</td>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price3) / 100 + '</td>';
+                            trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._threshold) / 100 + '</td>';
+
+                            if(isTradingHours(timestamp)) {
+                                trHtml += '<td>Open</td>';
+                            } else {
+                                trHtml += '<td>Closed</td>';
+                            }
+                            trHtml += '</tr>';
+
+                            $('#disc_table').append(trHtml);
+                        }
                     }
                 } else {
                     console.log(data);
@@ -173,15 +199,34 @@
                     $('#stock_table').html('');
                     for (i = 0; i < data.length; i++) {
                         let evnt = data[i];
+                        let timestamp = evnt.returnValues._timestamp;
 
-                        let trHtml = '<tr>';
-                        trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
-                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price) / 100 + '</td>';
-                        trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
-                        trHtml += '<td>' + evnt.returnValues._source + '</td>';
-                        trHtml += '</tr>';
+                        var display = false;
+                        if(trading == 'closed') {
+                            display = true;
+                        } else {
+                            if(isTradingHours(timestamp)) {
+                                display = true;
+                            }
+                        }
 
-                        $('#stock_table').append(trHtml);
+                        if(display === true) {
+                            let trHtml = '<tr>';
+                            trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price) / 100 + '</td>';
+                            trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
+                            trHtml += '<td>' + evnt.returnValues._source + '</td>';
+
+                            if(isTradingHours(timestamp)) {
+                                trHtml += '<td>Open</td>';
+                            } else {
+                                trHtml += '<td>Closed</td>';
+                            }
+
+                            trHtml += '</tr>';
+
+                            $('#stock_table').append(trHtml);
+                        }
                     }
                     if(ticker !== null) {
                         drawChart(data);
@@ -194,7 +239,9 @@
 
         }
 
-        function timeConverter(UNIX_timestamp, minuteOnly=false){
+        function timeConverter(UNIX_timestamp, groupByHour=false){
+            //hack to get NYC time, GMT-4
+            UNIX_timestamp = parseInt(UNIX_timestamp) - 14400;
             var a = new Date(UNIX_timestamp * 1000);
             var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
             var year = a.getFullYear();
@@ -204,12 +251,22 @@
             var min = "0" + a.getMinutes();
             var sec = "0" + a.getSeconds();
 
-            if(minuteOnly == true) {
-                var time = date + ' ' + month + ' ' + year + ' ' + hour.substr(-2) + ':' + min.substr(-2) ;
+            if(groupByHour == true) {
+                var time = date + ' ' + month + ' ' + year + ' ' + hour.substr(-2) + ':00 - ' + hour.substr(-2) + ':59' ;
             } else {
                 var time = date + ' ' + month + ' ' + year + ' ' + hour.substr(-2) + ':' + min.substr(-2) + ':' + sec.substr(-2) ;
             }
             return time;
+        }
+
+        function isTradingHours(UNIX_timestamp) {
+            var a = new Date(UNIX_timestamp * 1000);
+            var hour = a.getHours();
+            // NYSE trading times (09:30 - 16:00 = 13:30 - 20:00 GMT)
+            if(hour >= 13 && hour <= 20) {
+                return true;
+            }
+            return false;
         }
 
         function secondsToTime(secs) {
@@ -232,12 +289,25 @@
 
         $('#tracker_select').change(function(){
             let ticker = $("#tracker_select option:selected").val();
+            let trading = $("#trading_select option:selected").val();
             if(ticker == "all") {
-                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port;
+                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?trading=" + trading;
             } else {
-                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker;
+                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading;
             }
         });
+
+        $('#trading_select').change(function(){
+            let ticker = $("#tracker_select option:selected").val();
+            let trading = $("#trading_select option:selected").val();
+            if(ticker == "all") {
+                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?trading=" + trading;
+            } else {
+                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading;
+            }
+        });
+
+
 
 
         function drawChart(data) {
@@ -264,39 +334,84 @@
 
             let dataSets = [];
             let labels = [];
-            let tmpData = {};
+            let dataByDate = {};
+
+            //calculate averages for missing data...
+            let averages = {'Alpha Vantage':{avg:0,cnt:0,tot:0},'World Trading':{avg:0,cnt:0,tot:0}, 'IEX Cloud':{avg:0,cnt:0,tot:0}};
 
             for (i = 0; i < data.length; i++) {
                 let evnt = data[i];
                 let price = parseFloat(evnt.returnValues._price) / 100;
-                if(price > 0) {
-                    let dateTime = timeConverter(evnt.returnValues._timestamp, true);
-                    if(!labels.includes(dateTime)) {
-                        labels.push(dateTime);
+                let source = evnt.returnValues._source;
+                let timestamp = evnt.returnValues._timestamp;
+                var display = false;
+                if(trading == 'closed') {
+                    display = true;
+                } else {
+                    if(isTradingHours(timestamp)) {
+                        display = true;
                     }
-                    tmpData[evnt.returnValues._source] = [];
                 }
-            }
 
-            for (i = 0; i < data.length; i++) {
-                let evnt = data[i];
-                let price = parseFloat(evnt.returnValues._price) / 100;
-                if(price > 0) {
+                if(price > 0 && display === true) {
+                    averages[source].cnt++;
+                    averages[source].tot += price;
                     if(price < minPrice) {
                         minPrice = price;
                     }
                     if(price > maxPrice) {
                         maxPrice = price;
                     }
-                    tmpData[evnt.returnValues._source].push(price);
+                }
+            }
+
+            averages['Alpha Vantage'].avg = (averages['Alpha Vantage'].tot / averages['Alpha Vantage'].cnt).toFixed(2);
+            averages['World Trading'].avg = (averages['World Trading'].tot / averages['World Trading'].cnt).toFixed(2);
+            averages['IEX Cloud'].avg = (averages['IEX Cloud'].tot / averages['IEX Cloud'].cnt).toFixed(2);
+
+            // last submitted value - begin with avg
+            averages['Alpha Vantage'].last = averages['Alpha Vantage'].avg;
+            averages['World Trading'].last = averages['World Trading'].avg;
+            averages['IEX Cloud'].last = averages['IEX Cloud'].avg;
+
+
+            for (i = 0; i < data.length; i++) {
+                let evnt = data[i];
+                let price = parseFloat(evnt.returnValues._price) / 100;
+                let dateTime = timeConverter(evnt.returnValues._timestamp, true);
+                let source = evnt.returnValues._source;
+                let timestamp = evnt.returnValues._timestamp;
+                var display = false;
+                if(trading == 'closed') {
+                    display = true;
+                } else {
+                    if(isTradingHours(timestamp)) {
+                        display = true;
+                    }
+                }
+                if(!labels.includes(dateTime) && display === true) {
+                    labels.push(dateTime);
+                    // initialise with last submitted value to fill missing data
+                    dataByDate[dateTime] = {'Alpha Vantage':parseFloat(averages['Alpha Vantage'].last),
+                                            'World Trading':parseFloat(averages['World Trading'].last),
+                                            'IEX Cloud':parseFloat(averages['IEX Cloud'].last)};
+                }
+                if(price > 0 && display === true) {
+                    dataByDate[dateTime][source] = price;
+
+                    //update last submitted value
+                    averages[source].last = price;
                 }
             }
 
             let diffPrice = maxPrice - minPrice;
-            let dataKeys = Object.keys(tmpData);
+            let dataKeys = Object.keys(averages); //use this to get sources
 
             for(let k of dataKeys) {
-                let d = tmpData[k];
+                let d = [];
+                for(let dateKey of Object.keys(dataByDate)) {
+                    d.push(dataByDate[dateKey][k]);
+                }
                 let chartData = {};
                 chartData['label'] = k;
                 chartData['data'] = d;
@@ -304,8 +419,6 @@
                 chartData['borderColor'] = [colours[k].borderColor]
                 dataSets.push(chartData);
             }
-
-            console.log(dataSets);
 
             var myChart = new Chart(ctx, {
                 type: 'line',
@@ -318,7 +431,28 @@
                         yAxes: [{
                             ticks: {
                                 suggestedMin: (minPrice - (diffPrice / 5)),
-                                suggestedMax: (maxPrice + (diffPrice / 5))
+                                suggestedMax: (maxPrice + (diffPrice / 5)),
+                                callback: function(value, index, values) {
+                                    return '$' + value;
+                                }
+                            }
+                        }],
+                        xAxes: [{
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    if(trading == 'closed') {
+                                        let dateArray = value.split(" ");
+                                        let hour = parseInt(dateArray[3]);
+                                        if(hour >= 9 && hour <= 16) {
+                                            return value + ' (open)';
+                                        } else {
+                                            return value + ' (closed)';
+                                        }
+                                    } else {
+                                        return value;
+                                    }
+
+                                }
                             }
                         }]
                     }

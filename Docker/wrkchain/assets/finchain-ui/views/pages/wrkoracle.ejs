@@ -129,9 +129,17 @@
 
                     for(i=1; i<data.length; i++) {
                         let historyHtml = '<tr>';
-                        historyHtml += '<td><a href="/explorer/block/' + data[i].returnValues._height + '" target="_blank">' + data[i].returnValues._height + '</a></td>';
-                        historyHtml += '<td><a href="/validate?block=' + data[i].returnValues._height + '">validate</a></td>';
-                        historyHtml += '<td><a href="<%= MAINCHAIN_EXPLORER_URL%>/tx/' + data[i].transactionHash + '" target="_blank">' + data[i].transactionHash + '</a></td>';
+                        historyHtml += '<td>';
+                        historyHtml += '<a href="/explorer/block/' + data[i].returnValues._height + '" target="_blank">';
+                        historyHtml += data[i].returnValues._height;
+                        historyHtml += '</a>';
+                        historyHtml += '</td>';
+                        historyHtml += '<td>';
+                        historyHtml += '<a href="/validate?block=' + data[i].returnValues._height + '">validate</a>';
+                        historyHtml += '</td>';
+                        historyHtml += '<td>';
+                        historyHtml += '<a href="<%= MAINCHAIN_EXPLORER_URL%>/tx/' + data[i].transactionHash + '" target="_blank">' + data[i].transactionHash + '</a>';
+                        historyHtml += '</td>';
                         historyHtml += '</tr>';
                         $('#wrkoracle_history').append(historyHtml);
                     }
