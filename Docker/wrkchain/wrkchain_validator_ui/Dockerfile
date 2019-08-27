@@ -6,6 +6,8 @@ RUN npm install -g truffle
 
 ARG MAINCHAIN_EXPLORER_URL
 ARG MAINCHAIN_WEB3_PROVIDER_URL
+ARG WRKCHAIN_EXPLORER_URL
+ARG WRKCHAIN_NAME
 ARG WRKCHAIN_NETWORK_ID
 ARG WRKCHAIN_ROOT_WRITE_TIMEOUT
 ARG WRKCHAIN_WEB3_PROVIDER_URL
@@ -34,6 +36,8 @@ COPY ./assets/run_finchain_services.sh /root/run_finchain_services.sh
 
 RUN echo "MAINCHAIN_EXPLORER_URL=${MAINCHAIN_EXPLORER_URL}" >> /root/finchain-oracle-contract/.env && \
     echo "MAINCHAIN_WEB3_PROVIDER_URL=${MAINCHAIN_WEB3_PROVIDER_URL}" >> /root/finchain-oracle-contract/.env && \
+    echo "WRKCHAIN_EXPLORER_URL=${WRKCHAIN_EXPLORER_URL}" >> /root/finchain-oracle-contract/.env && \
+    echo "WRKCHAIN_NAME=${WRKCHAIN_NAME}" >> /root/finchain-oracle-contract/.env && \
     echo "WRKCHAIN_NETWORK_ID=${WRKCHAIN_NETWORK_ID}" >> /root/finchain-oracle-contract/.env && \
     echo "WRKCHAIN_ROOT_WRITE_TIMEOUT=${WRKCHAIN_ROOT_WRITE_TIMEOUT}" >> /root/finchain-oracle-contract/.env && \
     echo "WRKCHAIN_WEB3_PROVIDER_URL=${WRKCHAIN_WEB3_PROVIDER_URL}" >> /root/finchain-oracle-contract/.env && \

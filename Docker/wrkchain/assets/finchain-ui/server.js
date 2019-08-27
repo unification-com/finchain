@@ -31,7 +31,8 @@ app.get('/', function(req, res) {
         TRACKED_TICKERS: trackedTickers,
         TICKER: selectedTicker,
         THRESHOLD: process.env.THRESHOLD,
-        TRADING: req.query.trading
+        TRADING: req.query.trading,
+        WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL
     });
 });
 
@@ -45,7 +46,8 @@ app.get('/wrkoracle', function(req, res) {
         WRKCHAIN_ROOT_WRITE_TIMEOUT: process.env.WRKCHAIN_ROOT_WRITE_TIMEOUT,
         WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
         WRKCHAIN_NETWORK_ID: process.env.WRKCHAIN_NETWORK_ID,
-        LEGACY_WRKCHAIN_ROOT: process.env.LEGACY_WRKCHAIN_ROOT
+        LEGACY_WRKCHAIN_ROOT: process.env.LEGACY_WRKCHAIN_ROOT,
+        WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL
     });
 });
 
@@ -59,7 +61,8 @@ app.get('/validate', function(req, res) {
         BLOCK_NUM: req.query.block,
         WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
         WRKCHAIN_NETWORK_ID: process.env.WRKCHAIN_NETWORK_ID,
-        LEGACY_WRKCHAIN_ROOT: process.env.LEGACY_WRKCHAIN_ROOT
+        LEGACY_WRKCHAIN_ROOT: process.env.LEGACY_WRKCHAIN_ROOT,
+        WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL
     });
 });
 
