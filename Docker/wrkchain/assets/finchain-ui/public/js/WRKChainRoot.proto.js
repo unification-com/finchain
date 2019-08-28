@@ -67,6 +67,19 @@ WRKChainRoot.prototype.getCurrentBlockNumber = async function () {
   return blockNumber;
 }
 
+WRKChainRoot.prototype.getWrkchainRootTx = function(_tx, _callback) {
+    let self = this;
+    this.getTxFromMainchain(_tx).then(tx_data => {
+        _callback(tx_data);
+        return;
+    });
+}
+
+WRKChainRoot.prototype.getTxFromMainchain = async function(_tx) {
+    let txData = this.web3jsMainchain.eth.getTransaction(_tx);
+    return txData;
+}
+
 function numStringToBytes32(num) {
    var bn = new Web3.utils.BN(num).toTwos(256);
    return padToBytes32(bn.toString(16));

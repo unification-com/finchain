@@ -1,6 +1,8 @@
 require("dotenv").config();
+const Web3 = require('web3');
 var express = require('express');
 var app = express();
+const InputDataDecoder = require('ethereum-input-data-decoder');
 
 if (process.env.LEGACY_WRKCHAIN_ROOT == 'true') {
     var WRKCHAIN_ROOT_ABI=[{"constant":false,"inputs":[{"name":"_chainId","type":"uint256"},{"name":"_addressesToRemove","type":"address[]"}],"name":"removeAuthAddresses","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_chainId","type":"uint256"},{"name":"_newAuthAddresses","type":"address[]"}],"name":"addAuthAddresses","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_chainId","type":"uint256"},{"name":"_authAddresses","type":"address[]"},{"name":"_genesisHash","type":"bytes32"}],"name":"registerWrkChain","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"_chainId","type":"uint256"}],"name":"getNumBlocksSubmitted","outputs":[{"name":"numBlocksSubmitted_","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"wrkchainList","outputs":[{"name":"lastBlock","type":"uint256"},{"name":"genesisHash","type":"bytes32"},{"name":"isWrkchain","type":"bool"},{"name":"owner","type":"address"},{"name":"numBlocksSubmitted","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_chainId","type":"uint256"},{"name":"_height","type":"uint256"},{"name":"_hash","type":"bytes32"},{"name":"_parentHash","type":"bytes32"},{"name":"_receiptRoot","type":"bytes32"},{"name":"_txRoot","type":"bytes32"},{"name":"_stateRoot","type":"bytes32"},{"name":"_blockSigner","type":"address"}],"name":"recordHeader","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_chainId","type":"uint256"},{"name":"_address","type":"address"}],"name":"isAuthorisedAddress","outputs":[{"name":"_isAuthorised","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_chainId","type":"uint256"}],"name":"getGenesis","outputs":[{"name":"genesisHash_","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_chainId","type":"uint256"},{"name":"_newOwner","type":"address"}],"name":"changeWrkchainOwner","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_chainId","type":"uint256"}],"name":"getLastRecordedBlockNum","outputs":[{"name":"lastBlock_","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_wrkchainRegDeposit","type":"uint256"},{"name":"_minBlocksForDepositReturn","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_chainId","type":"uint256"},{"indexed":true,"name":"_height","type":"uint256"},{"indexed":true,"name":"_hash","type":"bytes32"},{"indexed":false,"name":"_parentHash","type":"bytes32"},{"indexed":false,"name":"_receiptRoot","type":"bytes32"},{"indexed":false,"name":"_txRoot","type":"bytes32"},{"indexed":false,"name":"_stateRoot","type":"bytes32"},{"indexed":false,"name":"_blockSigner","type":"address"}],"name":"RecordHeader","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_chainId","type":"uint256"},{"indexed":false,"name":"_genesisHash","type":"bytes32"}],"name":"RegisterWrkChain","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_from","type":"address"},{"indexed":false,"name":"_amount","type":"uint256"}],"name":"LogFallbackFunctionCalled","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_chainId","type":"uint256"},{"indexed":true,"name":"_owner","type":"address"},{"indexed":false,"name":"_amount","type":"uint256"}],"name":"WRKChainDepositRefund","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_chainId","type":"uint256"},{"indexed":true,"name":"_authorisedBy","type":"address"},{"indexed":false,"name":"_address","type":"address"}],"name":"AuthoriseNewAddress","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_chainId","type":"uint256"},{"indexed":true,"name":"_removedBy","type":"address"},{"indexed":false,"name":"_address","type":"address"}],"name":"RemoveAuthorisedAddress","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_chainId","type":"uint256"},{"indexed":false,"name":"_old","type":"address"},{"indexed":false,"name":"_new","type":"address"}],"name":"WRKChainOwnerChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_chainId","type":"uint256"},{"indexed":true,"name":"_owner","type":"address"},{"indexed":false,"name":"_amount","type":"uint256"}],"name":"WRKChainDepositPaid","type":"event"}];
@@ -15,6 +17,8 @@ app.set('view engine', 'ejs');
 app.use('/',express.static(__dirname + '/public'));
 
 let trackedTickers = process.env.TRACKED_TICKERS.split(",");
+
+const decoder = new InputDataDecoder(WRKCHAIN_ROOT_ABI);
 
 // event listener page
 app.get('/', function(req, res) {
@@ -71,6 +75,7 @@ app.get('/validate', function(req, res) {
     res.render('pages/validate',{
         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
         MAINCHAIN_WEB3_PROVIDER_URL: process.env.MAINCHAIN_WEB3_PROVIDER_URL,
+        MAINCHAIN_EXPLORER_URL: process.env.MAINCHAIN_EXPLORER_URL,
         WRKCHAIN_ROOT_CONTRACT_ADDRESS: WRKCHAIN_ROOT_CONTRACT_ADDRESS,
         WRKCHAIN_ROOT_ABI: WRKCHAIN_ROOT_ABI,
         BLOCK_NUM: req.query.block,
@@ -79,6 +84,43 @@ app.get('/validate', function(req, res) {
         LEGACY_WRKCHAIN_ROOT: process.env.LEGACY_WRKCHAIN_ROOT,
         WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL
     });
+});
+
+app.get('/decode', function(req, res) {
+
+    const result = decoder.decodeData(req.query.d);
+
+    let formattedResult = {};
+    formattedResult['method'] = result.method;
+    formattedResult['types'] = [];
+    formattedResult['inputs'] = [];
+    formattedResult['names'] = [];
+
+    for(i=0; i< result.types.length; i++) {
+        let theType = result.types[i];
+        formattedResult['types'].push(result.types[i]);
+        formattedResult['names'].push(result.names[i]);
+
+        switch(theType) {
+            case 'uint256':
+                let n = new Web3.utils.BN(result.inputs[i]);
+                formattedResult['inputs'].push(n.toString());
+                break;
+            case 'bytes32':
+                formattedResult['inputs'].push(Web3.utils.bytesToHex(result.inputs[i]));
+                break;
+            case 'address':
+                formattedResult['inputs'].push("0x" + result.inputs[i]);
+                break;
+            default:
+                formattedResult['inputs'].push(result.inputs[i]);
+                break;
+        }
+
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(formattedResult));
 });
 
 const PORT = process.env.WRKCHAIN_VALIDATOR_SERVICE_PORT
