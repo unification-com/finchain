@@ -233,12 +233,21 @@
                         let evnt = data[i];
                         let timestamp = evnt.returnValues._timestamp;
                         let txShort = evnt.transactionHash.substring(2, 10);
+                        let price1 = parseFloat(evnt.returnValues._price1);
+                        let price2 = parseFloat(evnt.returnValues._price2);
+                        let price3 = parseFloat(evnt.returnValues._price3);
+                        let priceOk = false;
+                        if(price1 > 0 && price2 > 0 && price3 > 0) {
+                            priceOk = true;
+                        }
 
                         var display = false;
                         if(trading == 'closed') {
-                            display = true;
+                            if(priceOk === true) {
+                                display = true;
+                            }
                         } else {
-                            if(isTradingHours(timestamp)) {
+                            if(isTradingHours(timestamp) && priceOk === true) {
                                 display = true;
                             }
                         }
@@ -283,12 +292,15 @@
                         let timestamp = evnt.returnValues._timestamp;
                         let txShort = evnt.transactionHash.substring(2, 10);
                         let fromShort = evnt.returnValues._from.substring(2, 10);
+                        let price = parseFloat(evnt.returnValues._price);
 
                         var display = false;
                         if(trading == 'closed') {
-                            display = true;
+                            if(price > 0) {
+                                display = true;
+                            }
                         } else {
-                            if(isTradingHours(timestamp)) {
+                            if(isTradingHours(timestamp) && price > 0) {
                                 display = true;
                             }
                         }
