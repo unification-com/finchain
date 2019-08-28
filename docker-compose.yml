@@ -218,6 +218,8 @@ services:
       args:
         MAINCHAIN_EXPLORER_URL: "http://localhost:8080"
         MAINCHAIN_WEB3_PROVIDER_URL: "http://${SUBNET_IP}.11:8101"
+        WRKCHAIN_EXPLORER_URL: "http://localhost:8081"
+        WRKCHAIN_NAME: ${WRKCHAIN_NAME}
         WRKCHAIN_NETWORK_ID: 2339117895
         WRKCHAIN_ROOT_WRITE_TIMEOUT: 30
         WRKCHAIN_WEB3_PROVIDER_URL: "http://${SUBNET_IP}.25:8547"

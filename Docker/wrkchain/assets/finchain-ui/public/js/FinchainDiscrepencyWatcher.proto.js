@@ -15,22 +15,20 @@ function FinchainDiscrepencyWatcher(_contractAddress,
                                                        this.contractAddress);
 }
 
-FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_ticker, _callback) {
+FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_ticker, _timespan, _callback) {
 
   let self = this;
-  let tickerHash = null;
-  if(_ticker != null) {
-      tickerHash = Web3.utils.soliditySha3(_ticker);
-  }
+  let timespan = _timespan * 3600.0
+  let numBlocks = parseInt(timespan / 15.0); // looking up all tickers. Just get last 24 hours
+  let tickerHash = Web3.utils.soliditySha3(_ticker);
+  let noToReturn = _timespan * 3;
 
   this.getCurrentBlockNumber().then(blockNumber => {
 
-    let fromBlock = blockNumber -248; //blocks from last hour(ish) @ 15 sec/block
+    let fromBlock = blockNumber - numBlocks;
     if(fromBlock < 0) {
       fromBlock = 0;
     }
-
-    let noToReturn = 20;
 
     self.finchainContract.getPastEvents('discrepancy', {
       filter: {_tickerHash: tickerHash},
@@ -55,22 +53,21 @@ FinchainDiscrepencyWatcher.prototype.getLatestDiscrepencies = function(_ticker, 
   });
 }
 
-FinchainDiscrepencyWatcher.prototype.getLatestStocks = function(_ticker, _callback) {
+FinchainDiscrepencyWatcher.prototype.getLatestStocks = function(_ticker, _timespan, _callback) {
 
   let self = this;
-  let tickerHash = null;
-  if(_ticker != null) {
-      tickerHash = Web3.utils.soliditySha3(_ticker);
-  }
+  let timespan = _timespan * 3600.0
+  let numBlocks = parseInt(timespan / 15.0); // looking up all tickers. Just get last 24 hours
+  let tickerHash = Web3.utils.soliditySha3(_ticker);
+
+  let noToReturn = _timespan * 3;
 
   this.getCurrentBlockNumber().then(blockNumber => {
 
-    let fromBlock = blockNumber -248; //blocks from last hour(ish) @ 15 sec/block
+    let fromBlock = blockNumber - numBlocks;
     if(fromBlock < 0) {
       fromBlock = 0;
     }
-
-    let noToReturn = 20;
 
     self.finchainContract.getPastEvents('stockData', {
       filter: {_tickerHash: tickerHash},

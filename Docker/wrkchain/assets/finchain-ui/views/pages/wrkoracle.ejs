@@ -23,7 +23,8 @@
           <ul class="navbar-nav mr-auto">
             <li class="nav-item"><a class="nav-link" href="/">Stock Watcher</a></li>
             <li class="nav-item active"><a class="nav-link" href="/wrkoracle">WRKOracle Watcher</a></li>
-            <li class="nav-item"><a class="nav-link" href="/validate">WRKChain Block Validation</a></li>
+            <li class="nav-item"><a class="nav-link" href="/validate"><%= WRKCHAIN_NAME%> Block Validation</a></li>
+            <li class="nav-item"><a class="nav-link" href="<%= WRKCHAIN_EXPLORER_URL%>" target="_blank"><%= WRKCHAIN_NAME%> Block Explorer</a></li>
           </ul>
         </div>
       </nav>
@@ -37,26 +38,82 @@
     <p class="lead">
         <strong>Status: </strong> <span id="status"></span><br>
         <h3><%= WRKCHAIN_NAME%> Block #<span id="block_num"></span> Submitted to Mainchain (<a href="#" id="validate_link">Validate block</a>)</h3>
-        <strong>Hash:</strong> <span id="hash"></span><br>
-        <strong>Parent Hash:</strong> <span id="parent_hash"></span><br>
-        <strong>Tx Root:</strong> <span id="tx_root"></span><br>
-        <strong>State Root:</strong> <span id="state_root"></span><br>
-        <strong>Sealer:</strong> <span id="sealer"></span><br>
-        <strong>Current Time:</strong> <span id="block_time"></span><br>
 
-        <br>
+        <table class="table table-dark">
+            <tr>
+                <td>Hash</td>
+                <td><span id="hash"></span></td>
+            </tr>
+            <tr>
+                <td>Parent Hash</td>
+                <td><span id="parent_hash"></span></td>
+            </tr>
+            <tr>
+                <td>Tx Root</td>
+                <td><span id="tx_root"></span></td>
+            </tr>
+            <tr>
+                <td>State Root</td>
+                <td><span id="state_root"></span></td>
+            </tr>
+            <tr>
+                <td>Sealer</td>
+                <td><span id="sealer"></span></td>
+            </tr>
+            <tr>
+                <td>Current Time</td>
+                <td><span id="block_time"></span></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <h3>Mainchain Info</h3>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Submitted in Mainchain Tx
+                </td>
+                <td>
+                    <a target="_blank" id="tx" data-toggle="tooltip" data-placement="bottom" title="Hashes were submitted to Mainchain in this Tx. Click to view in the Mainchain Block Explorer"></a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Next check
+                </td>
+                <td>
+                    <span id="next_block"><%= WRKCHAIN_ROOT_WRITE_TIMEOUT%></span>
+                </td>
+            </tr>
+        </table>
 
-        <h3>Mainchain Info</h3>
-        <strong>Submitted in Mainchain Tx:</strong> <a target="_blank" id="tx"></a><br>
-        <strong>Next check:</strong> <span id="next_block"><%= WRKCHAIN_ROOT_WRITE_TIMEOUT%></span>
-    </p>
+        <h2>WRKOracle Submission history</h2>
+        <table class="table table-dark">
+            <thead>
+            <tr>
+                <th><%= WRKCHAIN_NAME%> Block #</th>
+                <th style="width: 150px;">Validate</th>
+                <th>Mainchain Tx</th>
+            </tr>
+            </thead>
+            <tbody id="wrkoracle_history">
+                 <tr>
+                     <td colspan="7">
+                         <div class="loader">Loading...</div>
+                     </td>
+                 </tr>
+            </tbody>
+        </table>
 
     </main>
 
-    <footer class="footer">
-    <div class="container">
-        <span class="text-muted"></span>
-    </div>
+    <footer class="page-footer font-small pt-4">
+        <div class="container">
+            <!-- Copyright -->
+            <div class="footer-copyright text-center py-3">&copy; 2019
+                <a href="https://unification.com"> unification.com</a> | <a href="https://github.com/unification-com/finchain-demo">View on Github</a>
+            </div>
+        </div>
     </footer>
 
 <!-- jQuery library -->
@@ -96,20 +153,43 @@
             $('#next_block').text(<%= WRKCHAIN_ROOT_WRITE_TIMEOUT%> + 1);
             wrkChainEventWatcher.getLatestRecordedHeader(function(success, data) {
                 if(success && data != undefined) {
+                    $('#wrkoracle_history').html('');
+                    let latestSubmission = data[0];
                     let now = new Date(Date.now());
-                    $('#block_num').text(data.returnValues._height);
+                    $('#block_num').text(latestSubmission.returnValues._height);
                     $('#block_time').text(now.toString());
-                    $('#tx').text(data.transactionHash);
-                    $('#tx').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/tx/' + data.transactionHash);
-                    $('#hash').text(data.returnValues._hash);
-                    $('#parent_hash').text(data.returnValues._parentHash);
-                    $('#receipt_root').text(data.returnValues._receiptRoot);
-                    $('#tx_root').text(data.returnValues._txRoot);
-                    $('#state_root').text(data.returnValues._stateRoot);
-                    $('#sealer').text(data.returnValues._blockSigner);
+                    $('#tx').text(latestSubmission.transactionHash);
+                    $('#tx').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/tx/' + latestSubmission.transactionHash);
+                    $('#hash').text(latestSubmission.returnValues._hash);
+                    $('#parent_hash').text(latestSubmission.returnValues._parentHash);
+                    $('#receipt_root').text(latestSubmission.returnValues._receiptRoot);
+                    $('#tx_root').text(latestSubmission.returnValues._txRoot);
+                    $('#state_root').text(latestSubmission.returnValues._stateRoot);
+                    $('#sealer').text(latestSubmission.returnValues._blockSigner);
                     $('#status').text("Success");
 
-                    $('#validate_link').attr('href','/validate?block=' + data.returnValues._height)
+                    $('#validate_link').attr('href','/validate?block=' + latestSubmission.returnValues._height);
+
+                    $('#wrkoracle_history').html('');
+
+                    for(i=1; i<data.length; i++) {
+                        let historyHtml = '<tr>';
+                        historyHtml += '<td>';
+                        historyHtml += '<a href="/explorer/block/' + data[i].returnValues._height + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block #' + data[i].returnValues._height + ' in Finchain Explorer">';
+                        historyHtml += data[i].returnValues._height;
+                        historyHtml += '</a>';
+                        historyHtml += '</td>';
+                        historyHtml += '<td>';
+                        historyHtml += '<a href="/validate?block=' + data[i].returnValues._height + '" data-toggle="tooltip" data-placement="bottom" title="Validate Block #' + data[i].returnValues._height + '">validate</a>';
+                        historyHtml += '</td>';
+                        historyHtml += '<td>';
+                        historyHtml += '<a href="<%= MAINCHAIN_EXPLORER_URL%>/tx/' + data[i].transactionHash + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Tx in Finchain Explorer">' + data[i].transactionHash + '</a>';
+                        historyHtml += '</td>';
+                        historyHtml += '</tr>';
+                        $('#wrkoracle_history').append(historyHtml);
+                    }
+
+                    $('[data-toggle="tooltip"]').tooltip();
 
                 } else {
                     console.log(data);

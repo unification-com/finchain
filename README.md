@@ -1,6 +1,18 @@
-# Finchain Demo
+# Finchain: A WRKChain Demo
 
-Docker and Docker Compose are required to run the localised, solf-contained
+## Public Finchain Demo
+
+The public Finchain Demo can be viewed here: https://finchain.unification.io  
+The public Finchain Block explorer can be found here: https://finchain.unification.io/explorer
+
+The public Finchain demo writes its block hashes to the UND Testnet.
+
+## Running Finchain Locally
+
+Finchain can be run locally as a completely self-contained demo, to allow developers
+to play with different configurations, and see how the internals of a WRKChain work.
+
+Docker and Docker Compose are required to run the localised, self-contained
 Finchain demo.
 
 Copy `example.env` to `.env` and make any required changes. API keys are required
@@ -13,7 +25,7 @@ Run the demo using:
 make
 ```
 
-## Docker network issues
+### Docker network issues
 
 By default, the demo uses the `172.25.1.0/24` subnet. If this subnet overlaps with your own, run:
 
@@ -40,7 +52,7 @@ or edit `.env` changing the value for `SUBNET_IP`
 
 to run the demo on the `192.168.5.0/24` subnet
 
-## WRKChain: Finchain Info
+### WRKChain: Finchain Info
 
 Network ID: 2339117895  
 
@@ -51,7 +63,7 @@ JSON RPC: http://localhost:8547
 WRKChain Block Validation UI: http://localhost:4040
 
 
-## Local UND Mainchain devnet
+### Local UND Mainchain devnet
 
 Network ID: 50010  
 

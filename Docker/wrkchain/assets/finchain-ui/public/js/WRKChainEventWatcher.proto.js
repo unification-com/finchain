@@ -14,8 +14,6 @@ function WRKChainEventWatcher(_contractAddress,
   }
   this.wrkchainNetworkId = wrkchainNetworkId
 
-  console.log(wrkchainNetworkId);
-
   let self = this;
 
   this.web3js = new Web3(new Web3.providers.HttpProvider(_web3ProviderUrl));
@@ -31,10 +29,12 @@ WRKChainEventWatcher.prototype.getLatestRecordedHeader = function(_callback) {
 
   this.getCurrentBlockNumber().then(blockNumber => {
 
-    let fromBlock = blockNumber -10;
+    let fromBlock = blockNumber - 100;
     if(fromBlock < 0) {
       fromBlock = 0;
     }
+
+    let noToReturn = 20;
 
     self.wrkchainRootContract.getPastEvents('RecordHeader', {
       filter: {_chainId: this.wrkchainNetworkId},
@@ -49,7 +49,8 @@ WRKChainEventWatcher.prototype.getLatestRecordedHeader = function(_callback) {
            _callback(false, error);
         }
       } else {
-        let latestEvent = events[events.length - 1]
+        let latestEvent = events.slice(Math.max(events.length - noToReturn, 1));
+        latestEvent = latestEvent.reverse();
         self.lastEvent = latestEvent;
         _callback(true, latestEvent);
       }

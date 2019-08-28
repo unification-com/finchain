@@ -8,6 +8,10 @@
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -23,7 +27,8 @@
           <ul class="navbar-nav mr-auto">
             <li class="nav-item active"><a class="nav-link" href="/">Stock Watcher</a></li>
             <li class="nav-item"><a class="nav-link" href="/wrkoracle">WRKOracle Watcher</a></li>
-            <li class="nav-item"><a class="nav-link" href="/validate">WRKChain Block Validation</a></li>
+            <li class="nav-item"><a class="nav-link" href="/validate"><%= WRKCHAIN_NAME%> Block Validation</a></li>
+            <li class="nav-item"><a class="nav-link" href="<%= WRKCHAIN_EXPLORER_URL%>" target="_blank"><%= WRKCHAIN_NAME%> Block Explorer</a></li>
           </ul>
         </div>
       </nav>
@@ -32,61 +37,99 @@
     <!-- Begin page content -->
     <main role="main" class="container">
         <br>
-    <h1 class="mt-5">Stock Listener</h1>
-
-    <p class="lead">
-      Check in here to see discrepencies between different sources.
-    </p>
-        <br>
-    <p id="no_data"></p>
+    <h1 class="mt-5"><%= WRKCHAIN_NAME%> <i class="fa fa-dollar"></i>tock Watcher</h1>
 
     <div id="oracle_container">
 
-        <p>Track:
-            <select id="tracker_select">
-                <option value="all">All</option>
-            <% for(var i=0; i < TRACKED_TICKERS.length; i++) {%>
-                <option value="<%= TRACKED_TICKERS[i] %>" <% if(TRACKED_TICKERS[i] == TICKER) { %>selected="selected" <% } %>>
-                    <%= TRACKED_TICKERS[i] %>
-                </option>
-            <% } %>
-            </select>
-        </p>
-
-
+        <table>
+            <tbody>
+            <tr>
+                <td>
+                    Track:
+                </td>
+                <td>
+                    <select id="tracker_select" class="form-control form-control-sm">
+                        <% for(var i=0; i < TRACKED_TICKERS.length; i++) {%>
+                            <option value="<%= TRACKED_TICKERS[i] %>" <% if(TRACKED_TICKERS[i] == TICKER) { %>selected="selected" <% } %>>
+                                <%= TRACKED_TICKERS[i] %>
+                            </option>
+                        <% } %>
+                    </select>
+                </td>
+                <td> &nbsp; </td>
+                <td>
+                    Time:
+                </td>
+                <td>
+                    <select id="timespan_select" class="form-control form-control-sm">
+                        <option value="24"<% if (!locals.TIMESPAN || TIMESPAN ==24) { %>selected="selected" <% } %>>24Hrs</option>
+                        <option value="48"<% if (locals.TIMESPAN && TIMESPAN ==48) { %>selected="selected" <% } %>>48Hrs</option>
+                        <option value="72"<% if (locals.TIMESPAN && TIMESPAN ==72) { %>selected="selected" <% } %>>72Hrs</option>
+                    </select>
+                </td>
+                <td>  &nbsp; </td>
+                <td>
+                    Show trading hours:
+                </td>
+                <td>
+                    <select id="trading_select" class="form-control form-control-sm">
+                        <option value="open"<% if (!locals.TRADING || TRADING =='open') { %>selected="selected" <% } %>>Open only</option>
+                        <option value="closed"<% if (locals.TRADING && TRADING =='closed') { %>selected="selected" <% } %>>Open and Closed</option>
+                    </select>
+                </td>
+            </tr>
+            </tbody>
+        </table>
         <div>
-            <h2>Latest Stocks Submitted</h2>
-            <table>
+            <h2>Latest Stocks Submitted<% if (locals.TICKER) { %>: <%= TICKER%> <% } %> <span id="company_name"></span></h2>
+            <table class="table table-dark">
                 <thead>
                 <tr>
-                    <th style="width: 70px;">Ticker</th>
-                    <th style="width: 70px;">Price</th>
-                    <th style="width: 180px;">Time</th>
-                    <th style="width: 150px;">Oracle</th>
+                    <th style="width: 150px;" scope="col">Price</th>
+                    <th style="width: 200px;" scope="col">Time</th>
+                    <th style="width: 150px;" scope="col">Source</th>
+                    <th style="width: 70px;" scope="col">Trading</th>
+                    <th style="width: 100px;" scope="col">Block</th>
+                    <th style="width: 100px;" scope="col">Tx</th>
+                    <th style="width: 100px;" scope="col">Oracle</th>
                 </tr>
                 </thead>
                 <tbody id="stock_table">
-
+                    <tr>
+                        <td colspan="7">
+                            <div class="loader">Loading...</div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
+
+            <% if (locals.TICKER) { %>
+            <canvas id="stockChart" width="400" height="200"></canvas>
+            <% } %>
 
         </div>
 
       <div>
-            <h2>Discrepancies found</h2>
-            <table>
+            <h2>Discrepancies Found</h2>
+            <table class="table table-dark">
                 <thead>
                 <tr>
-                    <th style="width: 50px;">Ticker</th>
-                    <th style="width: 150px;">Alpha Vantage</th>
-                    <th style="width: 150px;">World Trading Data</th>
-                    <th style="width: 150px;">IEX</th>
-                    <th style="width: 170px;">Time</th>
-                    <th style="width: 50px;">Threshold</th>
+                    <th style="width: 150px;" scope="col">Alpha Vantage</th>
+                    <th style="width: 150px;" scope="col">World Trading</th>
+                    <th style="width: 150px;" scope="col">IEX Cloud</th>
+                    <th style="width: 170px;" scope="col">Time</th>
+                    <th style="width: 50px;" scope="col">Threshold</th>
+                    <th style="width: 70px;" scope="col">Trading</th>
+                    <th style="width: 100px;" scope="col">Block</th>
+                    <th style="width: 100px;" scope="col">Tx</th>
                 </tr>
                 </thead>
                 <tbody id="disc_table">
-
+                    <tr>
+                        <td colspan="7">
+                            <div class="loader">Loading...</div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
 
@@ -97,10 +140,19 @@
 
     </main>
 
-    <footer class="footer">
-    <div class="container">
-        <span class="text-muted"></span>
-    </div>
+    <footer class="page-footer font-small pt-4">
+        <div class="container">
+            <div class="footer text-center py-3">
+                <span class="text-muted">
+                    Stock Smart Contract, Finchain Address: <a href="<%= WRKCHAIN_EXPLORER_URL%>/address/<%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%>" target="_blank"><%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%></a>
+                </span>
+            </div>
+
+            <!-- Copyright -->
+            <div class="footer-copyright text-center py-3">&copy; 2019
+                <a href="https://unification.com"> unification.com</a> | <a href="https://github.com/unification-com/finchain-demo">View on Github</a>
+            </div>
+        </div>
     </footer>
 
 <!-- jQuery library -->
@@ -110,7 +162,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
 
 <!-- Latest compiled JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.bundle.min.js"></script>
 
 <script type="text/javascript" src="js/web3.min.js"></script>
     <script type="text/javascript" src="js/FinchainDiscrepencyWatcher.proto.js"></script>
@@ -119,7 +171,30 @@
 
 <script type="text/javascript">
 
+     var tickerLookup = {
+         "AAPL": "Apple Inc.",
+         "AMD": "Advanced Micro Devices,Inc.",
+         "AMZN": "Amazon.com, Inc.",
+         "CRWD": "CrowdStrike Holdings, Inc.",
+         "CSCO": "Cisco Systems, Inc.",
+         "EBAY": "eBay Inc.",
+         "FTI": "TechnipFMC",
+         "GOOGL": "Alphabet Inc.",
+         "HPQ": "HP Inc.",
+         "INTC": "Intel Corporation",
+         "MSFT": "Microsoft Corporation",
+         "PM": "Philip Morris International Inc.",
+         "SPLK": "Splunk Inc.",
+         "TSLA": "Tesla, Inc.",
+         "UBER": "Uber Technologies Inc."
+     }
+
      $(document).ready(function () {
+
+        $('[data-toggle="tooltip"]').tooltip();
+
+        let companyName = tickerLookup["<%= TICKER%>"];
+        $('#company_name').text(companyName);
 
         let tm = <%= UPDATE_TIME%>;
         let tmObj = secondsToTime(tm)
@@ -131,6 +206,18 @@
         let ticker = null;
         <% } %>
 
+        <% if (locals.TRADING) { %>
+        let trading = "<%= TRADING%>";
+        <% } else { %>
+        let trading = "open";
+        <% } %>
+
+        <% if (locals.TIMESPAN) { %>
+        let timespan = <%= TIMESPAN%>;
+        <% } else { %>
+        let timespan = 24;
+        <% } %>
+
         let finchainDiscrepencyWatcher = new FinchainDiscrepencyWatcher('<%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%>',
                                                                         '<%= WRKCHAIN_WEB3_PROVIDER_URL%>',
                                                                          <%- JSON.stringify(FINCHAIN_ORACLE_ABI)%>);
@@ -139,42 +226,109 @@
         function updateWatcher() {
             $('#status').text("Fetching data");
             $('#next_check_secs').text(<%= UPDATE_TIME%>);
-            finchainDiscrepencyWatcher.getLatestDiscrepencies(ticker, function(success, data) {
+            finchainDiscrepencyWatcher.getLatestDiscrepencies(ticker, timespan, function(success, data) {
                 if(success && data != undefined) {
                     $('#disc_table').html('');
                     for (i = 0; i < data.length; i++) {
                         let evnt = data[i];
-                        let trHtml = '<tr>';
-                        trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
-                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price1) / 100 + '</td>';
-                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price2) / 100 + '</td>';
-                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price3) / 100 + '</td>';
-                        trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
-                        trHtml += '<td>$' + parseFloat(evnt.returnValues._threshold) / 100 + '</td>';
-                        trHtml += '</tr>';
+                        let timestamp = evnt.returnValues._timestamp;
+                        let txShort = evnt.transactionHash.substring(2, 10);
+                        let price1 = parseFloat(evnt.returnValues._price1);
+                        let price2 = parseFloat(evnt.returnValues._price2);
+                        let price3 = parseFloat(evnt.returnValues._price3);
+                        let priceOk = false;
+                        if(price1 > 0 && price2 > 0 && price3 > 0) {
+                            priceOk = true;
+                        }
 
-                        $('#disc_table').append(trHtml);
+                        var display = false;
+                        if(trading == 'closed') {
+                            if(priceOk === true) {
+                                display = true;
+                            }
+                        } else {
+                            if(isTradingHours(timestamp) && priceOk === true) {
+                                display = true;
+                            }
+                        }
+
+                        if(display === true) {
+                            let trHtml = '<tr>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price1) / 100 + '</td>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price2) / 100 + '</td>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price3) / 100 + '</td>';
+                            trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._threshold) / 100 + '</td>';
+
+                            if(isTradingHours(timestamp)) {
+                                trHtml += '<td>Open</td>';
+                            } else {
+                                trHtml += '<td>Closed</td>';
+                            }
+
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block #' + evnt.blockNumber + ' in Finchain Explorer">' + evnt.blockNumber + '</a></td>';
+
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Tx ' + txShort + ' in Finchain Explorer">' + txShort + '</a></td>';
+
+                            trHtml += '</tr>';
+
+                            $('#disc_table').append(trHtml);
+                        }
                     }
+
+                    $('[data-toggle="tooltip"]').tooltip();
+
                 } else {
                     console.log(data);
                     $('#status').text("Please refresh to try again");
                 }
             });
 
-            finchainDiscrepencyWatcher.getLatestStocks(ticker, function(success, data) {
+            finchainDiscrepencyWatcher.getLatestStocks(ticker, timespan, function(success, data) {
                 if(success && data != undefined) {
                     $('#stock_table').html('');
                     for (i = 0; i < data.length; i++) {
                         let evnt = data[i];
+                        let timestamp = evnt.returnValues._timestamp;
+                        let txShort = evnt.transactionHash.substring(2, 10);
+                        let fromShort = evnt.returnValues._from.substring(2, 10);
+                        let price = parseFloat(evnt.returnValues._price);
 
-                        let trHtml = '<tr>';
-                        trHtml += '<td>' + evnt.returnValues._ticker + '</td>';
-                        trHtml += '<td>$' + parseFloat(evnt.returnValues._price) / 100 + '</td>';
-                        trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
-                        trHtml += '<td>' + evnt.returnValues._source + '</td>';
-                        trHtml += '</tr>';
+                        var display = false;
+                        if(trading == 'closed') {
+                            if(price > 0) {
+                                display = true;
+                            }
+                        } else {
+                            if(isTradingHours(timestamp) && price > 0) {
+                                display = true;
+                            }
+                        }
 
-                        $('#stock_table').append(trHtml);
+                        if(display === true) {
+                            let trHtml = '<tr>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price) / 100 + '</td>';
+                            trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
+                            trHtml += '<td>' + evnt.returnValues._source + '</td>';
+
+                            if(isTradingHours(timestamp)) {
+                                trHtml += '<td>Open</td>';
+                            } else {
+                                trHtml += '<td>Closed</td>';
+                            }
+
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block #' + evnt.blockNumber + ' in Finchain Explorer">' + evnt.blockNumber + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Tx ' + txShort + ' in Finchain Explorer">' + txShort + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/address/' + evnt.returnValues._from + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Address ' + evnt.returnValues._from + ' in Finchain Explorer">' + fromShort + '</a></td>';
+
+                            trHtml += '</tr>';
+
+                            $('#stock_table').append(trHtml);
+                        }
+                    }
+                    $('[data-toggle="tooltip"]').tooltip();
+                    if(ticker !== null) {
+                        drawChart(data);
                     }
                 } else {
                     console.log(data);
@@ -184,26 +338,44 @@
 
         }
 
-        function timeConverter(UNIX_timestamp){
+        function timeConverter(UNIX_timestamp, groupByHour=false){
+            //hack to get NYC time, GMT-4
+            UNIX_timestamp = parseInt(UNIX_timestamp) - 14400;
             var a = new Date(UNIX_timestamp * 1000);
             var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
             var year = a.getFullYear();
             var month = months[a.getMonth()];
             var date = a.getDate();
-            var hour = a.getHours();
-            var min = a.getMinutes();
-            var sec = a.getSeconds();
-            if(hour == 0) {
-                hour = '00';
+            var hour = "0" + a.getHours();
+            var min = "0" + a.getMinutes();
+            var sec = "0" + a.getSeconds();
+
+            if(groupByHour == true) {
+                var time = date + ' ' + month + ' ' + year + ' ' + hour.substr(-2) + ':00 - ' + hour.substr(-2) + ':59' ;
+            } else {
+                var time = date + ' ' + month + ' ' + year + ' ' + hour.substr(-2) + ':' + min.substr(-2) + ':' + sec.substr(-2) ;
             }
-            if(min == 0) {
-                min = '00';
-            }
-            if(sec == 0) {
-                sec = '00';
-            }
-            var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
             return time;
+        }
+
+        function isTradingHours(UNIX_timestamp) {
+            var a = new Date(UNIX_timestamp * 1000);
+            var hour = a.getHours();
+            var minutes = a.getMinutes();
+            // NYSE trading times (09:30 - 16:00 = 13:30 - 20:00 GMT)
+            if(hour >= 13 && hour <= 20) {
+                if(hour == 13 && minutes < 30) {
+                    return false;
+                } else {
+                    return true;
+                }
+                if(hour == 20 && minutes > 0) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+            return false;
         }
 
         function secondsToTime(secs) {
@@ -214,7 +386,7 @@
             var minutes = Math.floor(divisor_for_minutes / 60);
 
             var divisor_for_seconds = divisor_for_minutes % 60;
-            var seconds = Math.ceil(divisor_for_seconds);
+            var seconds = divisor_for_seconds;
 
             var obj = {
                 "h": hours,
@@ -226,12 +398,182 @@
 
         $('#tracker_select').change(function(){
             let ticker = $("#tracker_select option:selected").val();
-            if(ticker == "all") {
-            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port;
-            } else {
-                window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker;
-            }
+            let trading = $("#trading_select option:selected").val();
+            let ts = $("#timespan_select option:selected").val();
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading + "&timespan=" + ts;
         });
+
+        $('#trading_select').change(function(){
+            let ticker = $("#tracker_select option:selected").val();
+            let trading = $("#trading_select option:selected").val();
+            let ts = $("#timespan_select option:selected").val();
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading + "&timespan=" + ts;
+        });
+
+
+        $('#timespan_select').change(function(){
+            let ticker = $("#tracker_select option:selected").val();
+            let trading = $("#trading_select option:selected").val();
+            let ts = $("#timespan_select option:selected").val();
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading + "&timespan=" + ts;
+        });
+
+
+        function drawChart(data) {
+
+            let colours = {
+                'Alpha Vantage': {
+                    'backgroundColor': 'rgba(255, 99, 132, 0.1)',
+                    'borderColor': 'rgba(255, 99, 132, 1)',
+                },
+                'World Trading': {
+                    'backgroundColor': 'rgba(54, 162, 235, 0.1)',
+                    'borderColor': 'rgba(54, 162, 235, 1)',
+                },
+                'IEX Cloud': {
+                    'backgroundColor': 'rgba(75, 192, 192, 0.1)',
+                    'borderColor': 'rgba(75, 192, 192, 1)',
+                }
+            }
+            let minPrice = 100000000.0;
+            let maxPrice = 0.0;
+
+            data = data.reverse();
+            var ctx = document.getElementById('stockChart').getContext('2d');
+
+            let dataSets = [];
+            let labels = [];
+            let dataByDate = {};
+
+            //calculate averages for missing data...
+            let averages = {'Alpha Vantage':{avg:0,cnt:0,tot:0},'World Trading':{avg:0,cnt:0,tot:0}, 'IEX Cloud':{avg:0,cnt:0,tot:0}};
+
+            for (i = 0; i < data.length; i++) {
+                let evnt = data[i];
+                let price = parseFloat(evnt.returnValues._price) / 100;
+                let source = evnt.returnValues._source;
+                let timestamp = evnt.returnValues._timestamp;
+                var display = false;
+                if(trading == 'closed') {
+                    display = true;
+                } else {
+                    if(isTradingHours(timestamp)) {
+                        display = true;
+                    }
+                }
+
+                if(price > 0 && display === true) {
+                    averages[source].cnt++;
+                    averages[source].tot += price;
+                    if(price < minPrice) {
+                        minPrice = price;
+                    }
+                    if(price > maxPrice) {
+                        maxPrice = price;
+                    }
+                }
+            }
+
+            averages['Alpha Vantage'].avg = (averages['Alpha Vantage'].tot / averages['Alpha Vantage'].cnt).toFixed(2);
+            averages['World Trading'].avg = (averages['World Trading'].tot / averages['World Trading'].cnt).toFixed(2);
+            averages['IEX Cloud'].avg = (averages['IEX Cloud'].tot / averages['IEX Cloud'].cnt).toFixed(2);
+
+            // last submitted value - begin with avg
+            averages['Alpha Vantage'].last = averages['Alpha Vantage'].avg;
+            averages['World Trading'].last = averages['World Trading'].avg;
+            averages['IEX Cloud'].last = averages['IEX Cloud'].avg;
+
+
+            for (i = 0; i < data.length; i++) {
+                let evnt = data[i];
+                let price = parseFloat(evnt.returnValues._price) / 100;
+                let dateTime = timeConverter(evnt.returnValues._timestamp, true);
+                let source = evnt.returnValues._source;
+                let timestamp = evnt.returnValues._timestamp;
+                var display = false;
+                if(trading == 'closed') {
+                    display = true;
+                } else {
+                    if(isTradingHours(timestamp)) {
+                        display = true;
+                    }
+                }
+                if(!labels.includes(dateTime) && display === true) {
+                    labels.push(dateTime);
+                    // initialise with last submitted value to fill missing data
+                    dataByDate[dateTime] = {'Alpha Vantage':parseFloat(averages['Alpha Vantage'].last),
+                                            'World Trading':parseFloat(averages['World Trading'].last),
+                                            'IEX Cloud':parseFloat(averages['IEX Cloud'].last)};
+                }
+                if(price > 0 && display === true) {
+                    dataByDate[dateTime][source] = price;
+
+                    //update last submitted value
+                    averages[source].last = price;
+                }
+            }
+
+            let diffPrice = maxPrice - minPrice;
+            let dataKeys = Object.keys(averages); //use this to get sources
+
+            for(let k of dataKeys) {
+                let d = [];
+                for(let dateKey of Object.keys(dataByDate)) {
+                    d.push(dataByDate[dateKey][k]);
+                }
+                let chartData = {};
+                chartData['label'] = k;
+                chartData['data'] = d;
+                chartData['backgroundColor'] = [colours[k].backgroundColor]
+                chartData['borderColor'] = [colours[k].borderColor]
+                dataSets.push(chartData);
+            }
+
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: dataSets
+                 },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                suggestedMin: (minPrice - (diffPrice / 5)),
+                                suggestedMax: (maxPrice + (diffPrice / 5)),
+                                callback: function(value, index, values) {
+                                    return '$' + value;
+                                }
+                            }
+                        }],
+                        xAxes: [{
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    let dateArray = value.split(" ");
+                                    let hour = parseInt(dateArray[3]);
+                                    if(trading == 'closed') {
+                                        if(hour >= 9 && hour <= 16) {
+                                            return value + ' (open)';
+                                        } else {
+                                            return value + ' (closed)';
+                                        }
+                                    } else {
+                                        if(hour == 9 || hour == 10) {
+                                           return value + " (OPENING)";
+                                        }
+                                        if(hour == 16) {
+                                           return value + " (CLOSING)";
+                                        }
+                                        return value;
+                                    }
+
+                                }
+                            }
+                        }]
+                    }
+                }
+            });
+        }
     });
 </script>
 </body>
