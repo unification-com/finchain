@@ -8,6 +8,8 @@
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -21,7 +23,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
           <ul class="navbar-nav mr-auto">
-            <li class="nav-item"><a class="nav-link" href="/">Stock Watcher</a></li>
+            <li class="nav-item"><a class="nav-link" href="/">$tock Watcher</a></li>
             <li class="nav-item"><a class="nav-link" href="/wrkoracle">WRKOracle Watcher</a></li>
             <li class="nav-item active"><a class="nav-link" href="/validate"><%= WRKCHAIN_NAME%> Block Validation</a></li>
             <li class="nav-item"><a class="nav-link" href="<%= WRKCHAIN_EXPLORER_URL%>" target="_blank"><%= WRKCHAIN_NAME%> Block Explorer</a></li>
@@ -146,6 +148,47 @@
         <tr>
       </table>
 
+        <h2>Mainchain Proof</h2>
+
+        <table class="table table-dark">
+            <tr>
+                <td>Mainchain Tx</td>
+                <td><a id="mainchain_tx" target="_blank"></a></td>
+            </tr>
+            <tr>
+                <td>Block</td>
+                <td><a id="mainchain_block" target="_blank"></a></td>
+            </tr>
+            <tr>
+                <td>To</td>
+                <td><a id="mainchain_to" target="_blank"></a></td>
+            </tr>
+            <tr>
+                <td>From</td>
+                <td><a id="mainchain_from" target="_blank"></a></td>
+            </tr>
+            <tr>
+                <td>r</td>
+                <td><span id="mainchain_r"></span></td>
+            </tr>
+            <tr>
+                <td>s</td>
+                <td><span id="mainchain_s"></span></td>
+            </tr>
+            <tr>
+                <td>v</td>
+                <td><span id="mainchain_v"></span></td>
+            </tr>
+            <tr>
+                <td>Raw data</td>
+                <td><span id="mainchain_raw_data" class="tx_input_data"></span></td>
+            </tr>
+            <tr>
+                <td>Decoded data</td>
+                <td><span id="mainchain_decoded_data" class="tx_input_data"></span></td>
+            </tr>
+        </table>
+
     </div>
 
     </main>
@@ -172,7 +215,6 @@
     <script type="text/javascript" src="js/WRKChainRoot.proto.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
 
-
 <script type="text/javascript">
 
     $(document).ready(function () {
@@ -198,7 +240,7 @@
         <% } %>
 
         function validateBlock(block_num) {
-            $('#no_data').html('<table class="table table-dark"><tr><td><div class="loader">Loading...</div></td></tr></table>');
+            $('#no_data').html('<table class="table table-dark"><tr><td><div class="load-container"><div class="loader">Loading...</div></div></td></tr></table>');
             $('#no_data').show();
             $('#validation_container').hide();
 
@@ -301,6 +343,72 @@
                   $('#block_valid').text("IS NOT VALID");
                   $('#block_valid').css('color', 'red');
                 }
+
+                //Mainchain Proof
+                $('#mainchain_tx').text(root_data.transactionHash);
+                $('#mainchain_tx').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/tx/' + root_data.transactionHash);
+
+                wrkChainRoot.getWrkchainRootTx(root_data.transactionHash, function(txData) {
+                    if(txData != undefined) {
+                        $('#mainchain_block').text(txData.blockNumber);
+                        $('#mainchain_block').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/block/' + txData.blockNumber);
+
+                        $('#mainchain_to').text(txData.to);
+                        $('#mainchain_to').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/address/' + txData.to);
+
+                        $('#mainchain_from').text(txData.from);
+                        $('#mainchain_from').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/address/' + txData.from);
+
+                        $('#mainchain_r').text(txData.r);
+                        $('#mainchain_s').text(txData.s);
+                        $('#mainchain_v').text(txData.v);
+
+                        $('#mainchain_raw_data').text(txData.input);
+
+                        //$.post( "/decode", { input_data: txData.input })
+                        //.done(function( data ) {
+                        //     console.log( "Data Loaded: " + data );
+                        //     $('#mainchain_decoded_data').text(data);
+                        //});
+
+                        $.get('/decode?d='+txData.input,
+                            function(data, status, xhr) {
+                                console.log(data);
+                                if(status == 'success') {
+
+                                    let decodedDataHtml = '';
+                                    decodedDataHtml += '<strong>Contract Method Called:</strong> ' + data.method + '<br>';
+                                    decodedDataHtml += '<strong>Contract Data Inputs</strong><br><br>';
+
+                                    decodedDataHtml += '<table>';
+                                    decodedDataHtml += '<thead>';
+                                    decodedDataHtml += '<tr>';
+                                    decodedDataHtml += '<th>Name</th><th>Type</th><th>Data</th>';
+                                    decodedDataHtml += '</tr>';
+                                    decodedDataHtml += '</thead>';
+                                    decodedDataHtml += '<tbody>';
+
+                                    for(i=0; i< data.types.length; i++) {
+                                        let inputName = data.names[i];
+                                        let inputType = data.types[i];
+                                        let inputData = data.inputs[i];
+                                        decodedDataHtml += '<tr>';
+                                        decodedDataHtml += '<td>' + inputName + '</td>';
+                                        decodedDataHtml += '<td>' + inputType + '</td>';
+                                        decodedDataHtml += '<td>' + inputData + '</td>';
+                                        decodedDataHtml += '</tr>';
+                                    }
+                                    decodedDataHtml += '</tbody>';
+                                    decodedDataHtml += '</table>';
+
+                                    $('#mainchain_decoded_data').html(decodedDataHtml);
+                                } else {
+                                    $('#mainchain_decoded_data').text("Failed to decode data");
+                                }
+                            }
+                        );
+                    }
+                });
             });
         }
 

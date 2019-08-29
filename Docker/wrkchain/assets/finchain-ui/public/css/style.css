@@ -27,6 +27,27 @@ body {
     color: #333;
 }
 
+.tx_input_data{
+    -ms-word-break: break-all;
+    word-break: break-all;
+
+ /* Non standard for webkit */
+     word-break: break-word;
+
+    -webkit-hyphens: auto;
+       -moz-hyphens: auto;
+        -ms-hyphens: auto;
+            hyphens: auto;
+}
+
+.load-container {
+    height: 240px;
+    position: relative;
+    overflow: hidden;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
 .loader,
 .loader:before,
 .loader:after {
@@ -34,7 +55,7 @@ body {
   -webkit-animation: load1 1s infinite ease-in-out;
   animation: load1 1s infinite ease-in-out;
   width: 1em;
-  height: 5em;
+  height: 4em;
 }
 .loader {
   color: #ffffff;
