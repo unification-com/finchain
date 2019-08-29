@@ -92,7 +92,18 @@ FinchainDiscrepencyWatcher.prototype.getLatestStocks = function(_ticker, _timesp
   });
 }
 
+FinchainDiscrepencyWatcher.prototype.getThreshold = function(_callback) {
+    this.getCurrentThreshold().then(threshold => {
+        _callback(threshold);
+    });
+}
+
 FinchainDiscrepencyWatcher.prototype.getCurrentBlockNumber = async function () {
   let blockNumber = await this.web3js.eth.getBlockNumber();
   return blockNumber;
+}
+
+FinchainDiscrepencyWatcher.prototype.getCurrentThreshold = async function() {
+    let threshold = await this.finchainContract.methods.threshold().call();
+    return threshold;
 }

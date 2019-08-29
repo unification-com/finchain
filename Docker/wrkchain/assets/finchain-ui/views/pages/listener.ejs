@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js" type="text/javascript"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
@@ -65,6 +65,8 @@
                         <option value="24"<% if (!locals.TIMESPAN || TIMESPAN ==24) { %>selected="selected" <% } %>>24Hrs</option>
                         <option value="48"<% if (locals.TIMESPAN && TIMESPAN ==48) { %>selected="selected" <% } %>>48Hrs</option>
                         <option value="72"<% if (locals.TIMESPAN && TIMESPAN ==72) { %>selected="selected" <% } %>>72Hrs</option>
+                        <option value="96"<% if (locals.TIMESPAN && TIMESPAN ==96) { %>selected="selected" <% } %>>96Hrs</option>
+                        <option value="168"<% if (locals.TIMESPAN && TIMESPAN ==168) { %>selected="selected" <% } %>>1 Week</option>
                     </select>
                 </td>
                 <td>  &nbsp; </td>
@@ -112,7 +114,7 @@
         </div>
 
       <div>
-            <h2>Discrepancies Found</h2>
+            <h2>Discrepancies Found - current threshold: $<span id="current_threshold"></span></h2>
             <table class="table table-dark">
                 <thead>
                 <tr>
@@ -168,8 +170,8 @@
 <!-- Latest compiled JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.bundle.min.js"></script>
 
-<script type="text/javascript" src="js/web3.min.js"></script>
-    <script type="text/javascript" src="js/FinchainDiscrepencyWatcher.proto.js"></script>
+<script type="text/javascript" src="/js/web3.min.js"></script>
+    <script type="text/javascript" src="/js/FinchainDiscrepencyWatcher.proto.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
 
 
@@ -230,6 +232,13 @@
         function updateWatcher() {
             $('#status').text("Fetching data");
             $('#next_check_secs').text(<%= UPDATE_TIME%>);
+
+            finchainDiscrepencyWatcher.getThreshold(function(threshold) {
+                let th = parseFloat(threshold) / 100;
+                $('#current_threshold').text(th);
+            });
+
+
             finchainDiscrepencyWatcher.getLatestDiscrepencies(ticker, timespan, function(success, data) {
                 if(success && data != undefined) {
                     $('#disc_table').html('');
@@ -404,14 +413,14 @@
             let ticker = $("#tracker_select option:selected").val();
             let trading = $("#trading_select option:selected").val();
             let ts = $("#timespan_select option:selected").val();
-            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading + "&timespan=" + ts;
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/track/" + ticker + "/" + trading + "/" + ts;
         });
 
         $('#trading_select').change(function(){
             let ticker = $("#tracker_select option:selected").val();
             let trading = $("#trading_select option:selected").val();
             let ts = $("#timespan_select option:selected").val();
-            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading + "&timespan=" + ts;
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/track/" + ticker + "/" + trading + "/" + ts;
         });
 
 
@@ -419,7 +428,7 @@
             let ticker = $("#tracker_select option:selected").val();
             let trading = $("#trading_select option:selected").val();
             let ts = $("#timespan_select option:selected").val();
-            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/?ticker=" + ticker + "&trading=" + trading + "&timespan=" + ts;
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/track/" + ticker + "/" + trading + "/" + ts;
         });
 
 

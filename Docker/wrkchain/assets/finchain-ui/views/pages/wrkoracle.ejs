@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
@@ -164,8 +164,8 @@
 <!-- Latest compiled JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
 
-<script type="text/javascript" src="js/web3.min.js"></script>
-    <script type="text/javascript" src="js/WRKChainEventWatcher.proto.js"></script>
+<script type="text/javascript" src="/js/web3.min.js"></script>
+    <script type="text/javascript" src="/js/WRKChainEventWatcher.proto.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
 
 
@@ -220,7 +220,7 @@
 
                     $('#status').html('Success <i class="material-icons large">check_circle_outline<i>').css('color', 'green');;
 
-                    $('#validate_link').attr('href','/validate?block=' + latestSubmission.returnValues._height);
+                    $('#validate_link').attr('href','/validate/' + latestSubmission.returnValues._height);
 
                     $('#wrkoracle_history').html('');
 
@@ -238,7 +238,7 @@
                         historyHtml += '<a href="<%= MAINCHAIN_EXPLORER_URL%>/tx/' + data[i].transactionHash + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Tx in Mainchain Explorer">' + data[i].transactionHash + '</a>';
                         historyHtml += '</td>';
                         historyHtml += '<td>';
-                        historyHtml += '<a href="/validate?block=' + data[i].returnValues._height + '" data-toggle="tooltip" data-placement="bottom" title="Validate Block #' + data[i].returnValues._height + '"><i class="material-icons large">open_in_new</i></a>';
+                        historyHtml += '<a href="/validate/' + data[i].returnValues._height + '" data-toggle="tooltip" data-placement="bottom" title="Validate Block #' + data[i].returnValues._height + '"><i class="material-icons large">open_in_new</i></a>';
                         historyHtml += '</td>';
                         historyHtml += '</tr>';
                         $('#wrkoracle_history').append(historyHtml);

@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
@@ -59,7 +59,7 @@
 
     <p id="no_data"></p>
 
-    <div id="validation_container">
+    <div id="validation_container" style="visibility:none;">
 
       <h2><%= WRKCHAIN_NAME%> Block #<span id="block_num_title"></span> <span id="block_valid"></span></h2>
 
@@ -187,6 +187,14 @@
                 <td>Decoded data</td>
                 <td><span id="mainchain_decoded_data" class="tx_input_data"></span></td>
             </tr>
+            <tr>
+                <td>Tx Receipt Status</td>
+                <td><span id="mainchain_receipt_status"></span></td>
+            </tr>
+            <tr>
+                <td>Tx Log ID</td>
+                <td><span id="mainchain_receipt_log_id"></span></td>
+            </tr>
         </table>
 
     </div>
@@ -211,8 +219,8 @@
 <!-- Latest compiled JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
 
-<script type="text/javascript" src="js/web3.min.js"></script>
-    <script type="text/javascript" src="js/WRKChainRoot.proto.js"></script>
+<script type="text/javascript" src="/js/web3.min.js"></script>
+    <script type="text/javascript" src="/js/WRKChainRoot.proto.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
 
 <script type="text/javascript">
@@ -235,7 +243,7 @@
           return false;
         });
 
-        <% if (locals.BLOCK_NUM > 0) { %>
+        <% if (locals.BLOCK_NUM) { %>
         validateBlock(<%= BLOCK_NUM%>);
         <% } %>
 
@@ -365,15 +373,8 @@
 
                         $('#mainchain_raw_data').text(txData.input);
 
-                        //$.post( "/decode", { input_data: txData.input })
-                        //.done(function( data ) {
-                        //     console.log( "Data Loaded: " + data );
-                        //     $('#mainchain_decoded_data').text(data);
-                        //});
-
                         $.get('/decode?d='+txData.input,
                             function(data, status, xhr) {
-                                console.log(data);
                                 if(status == 'success') {
 
                                     let decodedDataHtml = '';
@@ -409,6 +410,19 @@
                         );
                     }
                 });
+
+                wrkChainRoot.getWrkchainRootTxReceipt(root_data.transactionHash, function(receiptData) {
+                    if(receiptData != undefined) {
+                        if(receiptData.status == "0x1") {
+                            $('#mainchain_receipt_status').text("Success").css("color", "green");
+                        } else {
+                            $('#mainchain_receipt_status').text("Fail").css("color", "red");
+                        }
+
+                        $('#mainchain_receipt_log_id').text(receiptData.logs[0].id);
+                    }
+                });
+
             });
         }
 
