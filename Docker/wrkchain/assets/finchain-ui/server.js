@@ -20,21 +20,39 @@ let trackedTickers = process.env.TRACKED_TICKERS.split(",");
 
 const decoder = new InputDataDecoder(WRKCHAIN_ROOT_ABI);
 
-// event listener page
 app.get('/', function(req, res) {
-    let selectedTicker = req.query.ticker;
+    res.render('pages/listener',{
+        WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
+        WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
+        FINCHAIN_ORACLE_ABI: JSON.parse(process.env.FINCHAIN_ORACLE_ABI),
+        FINCHAIN_ORACLE_CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS,
+        UPDATE_TIME: process.env.UPDATE_TIME / 1000,
+        TRACKED_TICKERS: trackedTickers,
+        TICKER: trackedTickers[0],
+        THRESHOLD: process.env.THRESHOLD,
+        TRADING: 'open',
+        WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL,
+        TIMESPAN: 24
+    });
+});
+
+// event listener page
+app.get('/track/:ticker?/:trading?/:timespan?', function(req, res) {
+    let selectedTicker = req.params.ticker;
     if(selectedTicker === undefined || selectedTicker === null) {
         selectedTicker = trackedTickers[0];
     }
     let timespan = 24;
-    if(req.query.timespan !== undefined) {
-        timespan = parseInt(req.query.timespan);
+    if(req.params.timespan !== undefined) {
+        timespan = parseInt(req.params.timespan);
     }
 
     switch(timespan) {
         case 24:
         case 48:
         case 72:
+        case 96:
+        case 168:
             break;
         default:
             timespan = 24;
@@ -49,11 +67,13 @@ app.get('/', function(req, res) {
         TRACKED_TICKERS: trackedTickers,
         TICKER: selectedTicker,
         THRESHOLD: process.env.THRESHOLD,
-        TRADING: req.query.trading,
+        TRADING: req.params.trading,
         WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL,
         TIMESPAN: timespan
     });
 });
+
+
 
 // wrkoracle watcher page
 app.get('/wrkoracle', function(req, res) {
@@ -70,15 +90,16 @@ app.get('/wrkoracle', function(req, res) {
     });
 });
 
+
 // block validation page
-app.get('/validate', function(req, res) {
+app.get('/validate/:block?', function(req, res) {
     res.render('pages/validate',{
         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
         MAINCHAIN_WEB3_PROVIDER_URL: process.env.MAINCHAIN_WEB3_PROVIDER_URL,
         MAINCHAIN_EXPLORER_URL: process.env.MAINCHAIN_EXPLORER_URL,
         WRKCHAIN_ROOT_CONTRACT_ADDRESS: WRKCHAIN_ROOT_CONTRACT_ADDRESS,
         WRKCHAIN_ROOT_ABI: WRKCHAIN_ROOT_ABI,
-        BLOCK_NUM: req.query.block,
+        BLOCK_NUM: req.params.block,
         WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
         WRKCHAIN_NETWORK_ID: process.env.WRKCHAIN_NETWORK_ID,
         LEGACY_WRKCHAIN_ROOT: process.env.LEGACY_WRKCHAIN_ROOT,

@@ -75,9 +75,22 @@ WRKChainRoot.prototype.getWrkchainRootTx = function(_tx, _callback) {
     });
 }
 
+WRKChainRoot.prototype.getWrkchainRootTxReceipt = function(_tx, _callback) {
+    let self = this;
+    this.getTxReceiptFromMainchain(_tx).then(receipt_data => {
+        _callback(receipt_data);
+        return;
+    });
+}
+
 WRKChainRoot.prototype.getTxFromMainchain = async function(_tx) {
     let txData = this.web3jsMainchain.eth.getTransaction(_tx);
     return txData;
+}
+
+WRKChainRoot.prototype.getTxReceiptFromMainchain = async function(_tx) {
+    let receiptData = this.web3jsMainchain.eth.getTransactionReceipt(_tx);
+    return receiptData;
 }
 
 function numStringToBytes32(num) {

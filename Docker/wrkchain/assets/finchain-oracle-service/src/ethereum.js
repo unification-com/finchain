@@ -86,5 +86,20 @@ exports.updateStock = (ticker, price, i) => {
   });
 };
 
-//necessary to stop Infura HDWalletProvider;
-//provider.engine.stop();
+//setThreshold function
+exports.setThreshold = (threshold) => {
+  return new Promise( (resolve, reject) => {
+    account().then(account => {
+      myContract.setThreshold(threshold, { from: account[0] }, (err) => { //where account[0] is the contract owner address
+        if (err === null) {
+            console.log("Threshold set to:", threshold);
+            resolve();
+          } else {
+            console.log("FAILED")
+            console.log(err);
+            reject(err);
+          }
+        });
+      });
+    });
+  }
