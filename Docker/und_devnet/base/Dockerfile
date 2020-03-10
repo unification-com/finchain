@@ -1,35 +1,31 @@
-FROM ubuntu:xenial
+FROM golang:alpine AS build-env
 
-RUN apt-get update && \
-    apt-get -y install \
-        git \
-        vim \
-        telnet \
-        make build-essential software-properties-common \
-        wget curl && \
-    apt-get autoremove && \
-    apt-get clean
+# Set up dependencies
+ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python curl --upgrade grep
 
-WORKDIR "/root"
+RUN apk add --no-cache $PACKAGES
 
-RUN wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.10.3.linux-amd64.tar.gz && \
-    mkdir ~/.go
+# Set working directory for the build
+WORKDIR /go/src/github.com/unification-com
 
-ENV GOPATH="/root/.go"
-ENV GOROOT="/usr/local/go"
-ENV PATH="/usr/local/go/bin:${PATH}"
+# Add source files
+RUN git clone -b $(curl --silent "https://api.github.com/repos/unification-com/mainchain/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")') https://github.com/unification-com/mainchain
 
-RUN mkdir -p ${GOPATH}/src/github.com/unification-com
+WORKDIR /go/src/github.com/unification-com/mainchain
 
-RUN cd ${GOPATH}/src/github.com/unification-com && \
-    git clone https://github.com/unification-com/mainchain.git --depth 1
+# Install minimum necessary dependencies, build und & undcli, remove packages
+RUN make install
 
-RUN cd ${GOPATH}/src/github.com/unification-com/mainchain/cmd/und && \
-    go install .
+# Final image
+FROM alpine:edge
 
-COPY ./Docker/und_devnet/assets/bootnode_keys /root/.und_mainchain/bootnode_keys
-COPY ./Docker/und_devnet/assets/bootnode_keys/static-nodes-docker.json /root/.und_mainchain/und/static-nodes.json
-COPY ./Docker/und_devnet/assets/genesis/genesis-50010.json /root/.und_mainchain/genesis.json
+# Install ca-certificates
+RUN apk add --update ca-certificates
+WORKDIR /root
+
+# Copy over binaries from the build-env
+COPY --from=build-env /go/bin/und /usr/bin/und
+COPY --from=build-env /go/bin/undcli /usr/bin/undcli
+COPY --from=build-env /go/src/github.com/unification-com/mainchain/Docker/assets /root/.und_mainchain
 
 RUN echo "alias ll='ls -la'" >> /root/.bashrc
