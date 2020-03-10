@@ -375,6 +375,13 @@
             var a = new Date(UNIX_timestamp * 1000);
             var hour = a.getHours();
             var minutes = a.getMinutes();
+            var day = a.getDay();
+
+            //Saturday & Sunday closed.
+            if(day == 0 || day == 6) {
+                return false;
+            }
+
             // NYSE trading times (09:30 - 16:00 = 13:30 - 20:00 GMT)
             if(hour >= 13 && hour <= 20) {
                 if(hour == 13 && minutes < 30) {
