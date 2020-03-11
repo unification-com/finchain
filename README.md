@@ -27,7 +27,7 @@ make
 
 ### Docker network issues
 
-By default, the demo uses the `172.25.1.0/24` subnet. If this subnet overlaps with your own, run:
+By default, the demo uses the `172.25.0.0/24` subnet. If this subnet overlaps with your own, run:
 
 ```bash
 ifconfig
@@ -65,8 +65,9 @@ WRKChain Block Validation UI: http://localhost:4040
 
 ### Local UND Mainchain devnet
 
-Network ID: 50010  
+Chain ID: UND-Mainchain-DevNet  
 
-Block Explorer: http://localhost:8080
+Block Explorer: http://localhost:3000
 
-JSON RPC: http://localhost:8101
+RPC: http://localhost:26661
+REST https://localhost:1318

@@ -67,16 +67,16 @@
                     <td><span id="parent_hash"></span></td>
                 </tr>
                 <tr>
+                    <td>Receipt Root</td>
+                    <td><span id="receipt_root"></span></td>
+                </tr>
+                <tr>
                     <td>Tx Root</td>
                     <td><span id="tx_root"></span></td>
                 </tr>
                 <tr>
                     <td>State Root</td>
                     <td><span id="state_root"></span></td>
-                </tr>
-                <tr>
-                    <td>Sealer</td>
-                    <td><span id="sealer"></span></td>
                 </tr>
                 <tr>
                     <td>Current Time</td>
@@ -101,7 +101,6 @@
                     </td>
                     <td>
                         #<a target="_blank" id="mainchain_block_num" data-toggle="tooltip" data-placement="bottom" title="Hashes were included in this Mainchain block. Click to view in the Mainchain Block Explorer"></a>
-                        (hash: <span id="mainchain_block_hash"></span>)
                     </td>
                 </tr>
                 <tr>
@@ -117,7 +116,7 @@
                         Next check
                     </td>
                     <td>
-                        <span id="next_block"><%= WRKCHAIN_ROOT_WRITE_TIMEOUT%></span>
+                        <span id="next_block"><%= WRKCHAIN_WRITE_TIMEOUT%></span>
                     </td>
                 </tr>
             </tbody>
@@ -173,15 +172,13 @@
 
     $(document).ready(function () {
 
-        let wrkChainEventWatcher = new WRKChainEventWatcher('<%= WRKCHAIN_ROOT_CONTRACT_ADDRESS%>',
-                                '<%= MAINCHAIN_WEB3_PROVIDER_URL%>',
-                                <%- JSON.stringify(WRKCHAIN_ROOT_ABI)%>,
-                                <%= WRKCHAIN_NETWORK_ID%>,
-                                <%= LEGACY_WRKCHAIN_ROOT%>);
+        let wrkChainEventWatcher = new WRKChainEventWatcher('<%= MAINCHAIN_REST_URL%>',
+                                                            '<%= WRKCHAIN_ID%>',
+                                                            '<%= WRKCHAIN_OWNER%>');
         updateWatcher();
         setInterval(function(){
             updateWatcher();
-        }, <%= WRKCHAIN_ROOT_WRITE_TIMEOUT%> * 1000);
+        }, <%= WRKCHAIN_WRITE_TIMEOUT%> * 1000);
 
         setInterval(function(){
             nextCheck();
@@ -191,54 +188,53 @@
             $('#results_table').hide();
             $('#loading_table').show();
             $('#status').html('Fetching data <i class="material-icons large">info<i>').css('color', 'blue');
-            $('#next_block').text(<%= WRKCHAIN_ROOT_WRITE_TIMEOUT%> + 1);
-            wrkChainEventWatcher.getLatestRecordedHeader(function(success, data) {
+            $('#next_block').text(<%= WRKCHAIN_WRITE_TIMEOUT%> + 1);
+            wrkChainEventWatcher.getLatestRecordedHeader(function(success, txs) {
                 $('#results_table').show();
                 $('#loading_table').hide();
-                if(success && data != undefined) {
+                if(success && txs != undefined) {
                     $('#wrkoracle_history').html('');
-                    let latestSubmission = data[0];
+                    let latestSubmission = txs[0];
+                    let msg = latestSubmission.tx.value.msg[0].value;
 
                     let now = new Date(Date.now());
-                    $('#block_num').text(latestSubmission.returnValues._height);
+                    $('#block_num').text(msg.height);
                     $('#block_time').text(now.toString());
-                    $('#tx').text(latestSubmission.transactionHash);
-                    $('#tx').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/tx/' + latestSubmission.transactionHash);
+                    $('#tx').text(latestSubmission.txhash);
+                    $('#tx').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/transactions/' + latestSubmission.txhash);
 
-                    $('#mainchain_block_num').text(latestSubmission.blockNumber);
-                    $('#mainchain_block_num').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/block/' + latestSubmission.blockNumber);
-                    $('#mainchain_block_hash').text(latestSubmission.blockHash);
-                    $('#mainchain_sig').text(latestSubmission.signature);
-                    $('#mainchain_event').text(latestSubmission.event);
+                    $('#mainchain_block_num').text(latestSubmission.height);
+                    $('#mainchain_block_num').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/blocks/' + latestSubmission.height);
+                    $('#mainchain_sig').text(latestSubmission.tx.value.signatures[0].signature);
 
-                    $('#hash').text(latestSubmission.returnValues._hash);
-                    $('#parent_hash').text(latestSubmission.returnValues._parentHash);
-                    $('#receipt_root').text(latestSubmission.returnValues._receiptRoot);
-                    $('#tx_root').text(latestSubmission.returnValues._txRoot);
-                    $('#state_root').text(latestSubmission.returnValues._stateRoot);
-                    $('#sealer').text(latestSubmission.returnValues._blockSigner);
+                    $('#hash').text(msg.blockhash);
+                    $('#parent_hash').text(msg.parenthash);
+                    $('#receipt_root').text(msg.hash1);
+                    $('#tx_root').text(msg.hash2);
+                    $('#state_root').text(msg.hash3);
 
                     $('#status').html('Success <i class="material-icons large">check_circle_outline<i>').css('color', 'green');;
 
-                    $('#validate_link').attr('href','/validate/' + latestSubmission.returnValues._height);
+                    $('#validate_link').attr('href','/validate/' + msg.height);
 
                     $('#wrkoracle_history').html('');
 
-                    for(i=1; i<data.length; i++) {
+                    for(i=1; i<txs.length; i++) {
+                        let msg = txs[i].tx.value.msg[0].value;
                         let historyHtml = '<tr>';
                         historyHtml += '<td>';
-                        historyHtml += '<a href="/explorer/block/' + data[i].returnValues._height + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block #' + data[i].returnValues._height + ' in Finchain Explorer">';
-                        historyHtml += data[i].returnValues._height;
+                        historyHtml += '<a href="/explorer/block/' + msg.height + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block #' + msg.height + ' in Finchain Explorer">';
+                        historyHtml += msg.height;
                         historyHtml += '</a>';
                         historyHtml += '</td>';
                         historyHtml += '<td>';
-                        historyHtml += '<a href="<%= MAINCHAIN_EXPLORER_URL%>/block/' + data[i].blockNumber + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block in Mainchain Explorer">' + data[i].blockNumber + '</a>';
+                        historyHtml += '<a href="<%= MAINCHAIN_EXPLORER_URL%>/blocks/' + txs[i].height + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block in Mainchain Explorer">' + txs[i].height + '</a>';
                         historyHtml += '</td>';
                         historyHtml += '<td>';
-                        historyHtml += '<a href="<%= MAINCHAIN_EXPLORER_URL%>/tx/' + data[i].transactionHash + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Tx in Mainchain Explorer">' + data[i].transactionHash + '</a>';
+                        historyHtml += '<a href="<%= MAINCHAIN_EXPLORER_URL%>/transactions/' + txs[i].txhash + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Tx in Mainchain Explorer">' + txs[i].txhash + '</a>';
                         historyHtml += '</td>';
                         historyHtml += '<td>';
-                        historyHtml += '<a href="/validate/' + data[i].returnValues._height + '" data-toggle="tooltip" data-placement="bottom" title="Validate Block #' + data[i].returnValues._height + '"><i class="material-icons large">open_in_new</i></a>';
+                        historyHtml += '<a href="/validate/' + msg.height + '" data-toggle="tooltip" data-placement="bottom" title="Validate Block #' + msg.height + '"><i class="material-icons large">open_in_new</i></a>';
                         historyHtml += '</td>';
                         historyHtml += '</tr>';
                         $('#wrkoracle_history').append(historyHtml);

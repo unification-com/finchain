@@ -1,21 +1,23 @@
-FROM node:6.11-alpine
+FROM geoffreybooth/meteor-base:1.9
 
-WORKDIR "/opt"
+RUN apt-get update && \
+    apt-get install git make
 
-RUN apk add --update git make g++ && \
-    git clone https://bitbucket.org/designisdead/blockchain-explorer.git
+# Build args
+ARG RPC
+ARG LCD
 
-WORKDIR "/opt/blockchain-explorer"
-RUN git checkout c6e12f1 && \
-    npm install
+WORKDIR /src
 
-ARG mainchain_rpc
-RUN sed -i "s/localhost:8545/${mainchain_rpc}/g" views/layout/default_layout.jade && \
-    sed -i "s/web3.js/web3.js@0.20.6/g" views/layout/default_layout.jade && \
-    grep -lr -e ' ETH' * | xargs sed -i 's/ ETH/ UND/g' && \
-    grep -lr -e 'Ethereum' * | xargs sed -i 's/Ethereum/UND/g'  && \
-    grep -lr -e 'Ether' * | xargs sed -i 's/Ether/UND/g' && \
-    grep -lr -e 'Expolorer' * | xargs sed -i 's/Expolorer/DEMONET Explorer/g' && \
-    grep -rl -e '(ethusd' * | xargs sed -i 's/(ethusd/(0.1/g'
+RUN git clone https://github.com/unification-com/mainchain-explorer --depth 1 && \
+    cd /src/mainchain-explorer
 
-CMD npm run start
+WORKDIR /src/mainchain-explorer
+
+RUN meteor npm install
+RUN meteor update
+
+RUN sed -i "s/localhost:1318/${LCD}/g" /src/mainchain-explorer/devnet_settings.json && \
+    sed -i "s/localhost:1317/${LCD}/g" /src/mainchain-explorer/devnet_settings.json && \
+    sed -i "s/localhost:26661/${RPC}/g" /src/mainchain-explorer/devnet_settings.json && \
+    cat /src/mainchain-explorer/devnet_settings.json

@@ -25,8 +25,10 @@ ENV GOPATH="/root/.go"
 ENV GOROOT="/usr/local/go"
 ENV PATH="/usr/local/go/bin:${PATH}"
 
-RUN go get github.com/ethereum/go-ethereum
-RUN go install github.com/ethereum/go-ethereum/cmd/geth
+WORKDIR /src
+RUN cd /src && git clone https://github.com/ethereum/go-ethereum
+WORKDIR /src/go-ethereum
+RUN cd /src/go-ethereum && make geth
 
 RUN rm -rf /root/$WRKCHAIN_DATA_DIR && mkdir -p /root/$WRKCHAIN_DATA_DIR
 
@@ -39,6 +41,6 @@ RUN sed -i "s/172.25.1/${SUBNET_IP}/g" /root/$WRKCHAIN_DATA_DIR/static-nodes.jso
 
 RUN echo $WALLET_PASS > /root/.walletpassword
 RUN echo $PRIVATE_KEY > /root/.privatekey
-RUN /root/.go/bin/geth --datadir=/root/$WRKCHAIN_DATA_DIR init /root/$WRKCHAIN_DATA_DIR/genesis.json
-RUN /root/.go/bin/geth --datadir=/root/$WRKCHAIN_DATA_DIR account import --password /root/.walletpassword  /root/.privatekey
+RUN /src/go-ethereum/build/bin/geth --datadir=/root/$WRKCHAIN_DATA_DIR init /root/$WRKCHAIN_DATA_DIR/genesis.json
+RUN /src/go-ethereum/build/bin/geth --datadir=/root/$WRKCHAIN_DATA_DIR account import --password /root/.walletpassword  /root/.privatekey
 RUN echo "alias ll='ls -la'" >> /root/.bashrc

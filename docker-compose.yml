@@ -2,117 +2,104 @@ version: '3.3'
 
 services:
   # UND devnet services
-  mainchain-dev-rpc:
-    hostname: mainchain-dev-rpc
+  node1:
+    hostname: node1
     build:
       context: Docker/und_devnet
       dockerfile: validator/Dockerfile
       args:
-        privatekey: 62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899
-        password: nope
         SUBNET_IP: ${SUBNET_IP}
-    container_name: mainchain-dev-rpc
-    command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-rpc" -networkid 50010 --port 30400 --syncmode="full" --nodiscover --rpc --rpccorsdomain "*" --rpcaddr 0.0.0.0 --rpcport 8101 --rpcvhosts "*" --ws --wsaddr 0.0.0.0 --wsport 8111 --wsorigins "*"
-    ports:
-      - 30400:30400/tcp
-      - 8101:8101/tcp
-      - 8111:8111/tcp
-    expose:
-      - 30400
-      - 8101
-      - 8111
+        NODE: "node1"
+    container_name: node1
+    command: /usr/bin/und start --home /root/.und_mainchain/node1 --rpc.laddr=tcp://0.0.0.0:26661 --log_level="main:info,state:info,x/enterprise:debug,x/beacon:debug,x/wrkchain:debug,*:error"
     networks:
       wrkchainnet:
-        ipv4_address: ${SUBNET_IP}.11
-  mainchain-dev-validator-1:
-    hostname: mainchain-dev-validator-1
-    build:
-      context: Docker/und_devnet
-      dockerfile: validator/Dockerfile
-      args:
-        privatekey: 62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899
-        password: pass
-        SUBNET_IP: ${SUBNET_IP}
-    container_name: mainchain-dev-validator-1
-    command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-validator-1" --password /root/.accountpassword --networkid 50010 --port 30401 --mine --gasprice "1" --targetgaslimit "420000000" --etherbase "0x6C45443De823a45e8f7204F1E69428E9AB42dd08" --unlock "0x6C45443De823a45e8f7204F1E69428E9AB42dd08" --syncmode="full" --nodekey="/root/.und_mainchain/bootnode_keys/0x6C45443De823a45e8f7204F1E69428E9AB42dd08.key" --nodiscover
+        ipv4_address: ${SUBNET_IP}.3
     ports:
-      - 30401:30401/tcp
-    expose:
-      - 30401
-    networks:
-      wrkchainnet:
-        ipv4_address: ${SUBNET_IP}.12
+      - "26661:26661"
 
-  mainchain-dev-validator-2:
-    hostname: mainchain-dev-validator-2
+  node2:
+    hostname: node2
     build:
       context: Docker/und_devnet
       dockerfile: validator/Dockerfile
       args:
-        privatekey: 226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c
-        password: word
         SUBNET_IP: ${SUBNET_IP}
-    container_name: mainchain-dev-validator-2
-    command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-validator-2" --password /root/.accountpassword --networkid 50010 --port 30402 --mine --gasprice "1" --targetgaslimit "420000000" --etherbase "0x743454EE5c097E56D0470C09B6c23880356Ce5FB" --unlock "0x743454EE5c097E56D0470C09B6c23880356Ce5FB" --syncmode="full" --nodekey="/root/.und_mainchain/bootnode_keys/0x743454EE5c097E56D0470C09B6c23880356Ce5FB.key" --nodiscover
-    ports:
-      - 30402:30402/tcp
-    expose:
-      - 30402
+        NODE: "node2"
+    container_name: node2
+    command: /usr/bin/und start --home /root/.und_mainchain/node2 --rpc.laddr=tcp://0.0.0.0:26662 --log_level="main:info,state:info,x/enterprise:debug,x/beacon:debug,x/wrkchain:debug,*:error"
     networks:
       wrkchainnet:
-        ipv4_address: ${SUBNET_IP}.13
+        ipv4_address: ${SUBNET_IP}.4
+    ports:
+      - "26662:26662"
 
-  mainchain-dev-validator-3:
-    hostname: mainchain-dev-validator-3
+  rest-server:
+    hostname: rest-server
     build:
       context: Docker/und_devnet
       dockerfile: validator/Dockerfile
       args:
-        privatekey: 5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42
-        password: word
         SUBNET_IP: ${SUBNET_IP}
-    container_name: mainchain-dev-validator-3
-    command: /root/.go/bin/und --verbosity 4 --datadir /root/.und_mainchain --identity "mainchain-dev-validator-3" --password /root/.accountpassword --networkid 50010 --port 30403 --mine --gasprice "1" --targetgaslimit "420000000" --etherbase "0x36D82EeF3Ce9897b0073116F29E28F6E149757d0" --unlock "0x36D82EeF3Ce9897b0073116F29E28F6E149757d0" --syncmode="full" --nodekey="/root/.und_mainchain/bootnode_keys/0x36D82EeF3Ce9897b0073116F29E28F6E149757d0.key" --nodiscover
-    ports:
-      - 30403:30403/tcp
-    expose:
-      - 30403
+        NODE: "node3"
+    container_name: rest-server
+    command: >
+      /bin/sh -c "
+        until nc -z ${SUBNET_IP}.3 26661; do sleep 1; echo 'wait for node1'; done
+        echo 'wait for first block'
+        sleep 10
+        /usr/bin/undcli rest-server --laddr=tcp://0.0.0.0:1317 --node tcp://${SUBNET_IP}.3:26661 --chain-id=UND-Mainchain-DevNet --trust-node=false
+      "
     networks:
       wrkchainnet:
-        ipv4_address: ${SUBNET_IP}.14
-
-  mainchain-dev-explorer:
-    hostname: mainchain-dev-explorer
-    depends_on:
-      - mainchain-dev-rpc
+        ipv4_address: ${SUBNET_IP}.6
     ports:
-      - 8080:8080
+      - "1317:1317"
+
+  proxy:
+    hostname: proxy
+    build:
+      context: Docker/und_devnet
+      dockerfile: proxy/Dockerfile
+      args:
+        REST_IP: ${SUBNET_IP}.6
+    container_name: proxy
+    networks:
+      wrkchainnet:
+        ipv4_address: ${SUBNET_IP}.7
+    ports:
+      - "1318:1318"
+
+  explorer:
+    hostname: explorer
     build:
       context: Docker/und_devnet
       dockerfile: explorer/Dockerfile
       args:
-        mainchain_rpc: "${SUBNET_IP}.11:8101"
-    container_name: mainchain-dev-explorer
-    expose:
-      - 8080
+        RPC: "${SUBNET_IP}.3:26661"
+        LCD: "${SUBNET_IP}.7:1318"
+    container_name: explorer
+    command: meteor --settings devnet_settings.json
     networks:
       wrkchainnet:
-        ipv4_address: ${SUBNET_IP}.16
+        ipv4_address: ${SUBNET_IP}.8
+    ports:
+      - 3000:3000
 
-  # WRKChain Services
+#  # WRKChain Services
   finchain-rpc:
     depends_on:
       - finchain-validator-1
     build:
       args:
-        GO_VERSION: 10.3
+        GO_VERSION: 13.1
         PRIVATE_KEY: 5d0929559ea34a21cfece4183400ebfbb049f7c8a7cb251b61a4b6cde399ef42 #0x36D82EeF3Ce9897b0073116F29E28F6E149757d0
         WALLET_PASS: pass
         WRKCHAIN_DATA_DIR: .und_wrkchain
         SUBNET_IP: ${SUBNET_IP}
       context: Docker/wrkchain
       dockerfile: node/Dockerfile
-    command: /root/.go/bin/geth --datadir=/root/.und_wrkchain --networkid 2339117895
+    command: /src/go-ethereum/build/bin/geth --datadir=/root/.und_wrkchain --networkid 2339117895
       --nodekey="/root/.und_wrkchain/node_keys/0x36D82EeF3Ce9897b0073116F29E28F6E149757d0.key"
       --port 30308 --rpc --rpcaddr "0.0.0.0" --rpcapi "admin,db,debug,eth,net,personal,txpool,web3"
       --rpccorsdomain "*" --rpcport "8547" --rpcvhosts "*" --syncmode=full --verbosity=3 --nodiscover
@@ -129,14 +116,14 @@ services:
   finchain-validator-1:
     build:
       args:
-        GO_VERSION: 10.3
+        GO_VERSION: 13.1
         PRIVATE_KEY: 62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899 #0x6C45443De823a45e8f7204F1E69428E9AB42dd08
         WALLET_PASS: pass
         WRKCHAIN_DATA_DIR: .und_wrkchain
         SUBNET_IP: ${SUBNET_IP}
       context: Docker/wrkchain
       dockerfile: node/Dockerfile
-    command: /root/.go/bin/geth --datadir=/root/.und_wrkchain --etherbase 0x6C45443De823a45e8f7204F1E69428E9AB42dd08
+    command: /src/go-ethereum/build/bin/geth --datadir=/root/.und_wrkchain --etherbase 0x6C45443De823a45e8f7204F1E69428E9AB42dd08
       --gasprice 0 --mine --networkid 2339117895 --nodekey="/root/.und_wrkchain/node_keys/0x6C45443De823a45e8f7204F1E69428E9AB42dd08.key"
       --nodiscover --password /root/.walletpassword --port 30306 --syncmode=full --unlock
       0x6C45443De823a45e8f7204F1E69428E9AB42dd08 --verbosity=4 --nodiscover
@@ -153,14 +140,14 @@ services:
   finchain-validator-2:
     build:
       args:
-        GO_VERSION: 10.3
+        GO_VERSION: 13.1
         PRIVATE_KEY: 226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c #0x743454EE5c097E56D0470C09B6c23880356Ce5FB
         WALLET_PASS: pass
         WRKCHAIN_DATA_DIR: .und_wrkchain
         SUBNET_IP: ${SUBNET_IP}
       context: Docker/wrkchain
       dockerfile: node/Dockerfile
-    command: /root/.go/bin/geth --datadir=/root/.und_wrkchain --etherbase 0x743454EE5c097E56D0470C09B6c23880356Ce5FB
+    command: /src/go-ethereum/build/bin/geth --datadir=/root/.und_wrkchain --etherbase 0x743454EE5c097E56D0470C09B6c23880356Ce5FB
       --gasprice 0 --mine --networkid 2339117895 --nodekey="/root/.und_wrkchain/node_keys/0x743454EE5c097E56D0470C09B6c23880356Ce5FB.key"
       --nodiscover --password /root/.walletpassword --port 30307 --syncmode=full --unlock
       0x743454EE5c097E56D0470C09B6c23880356Ce5FB --verbosity=4 --nodiscover
@@ -199,9 +186,8 @@ services:
       context: Docker/wrkchain
       dockerfile: wrkoracle/Dockerfile
       args:
-        PRIVATE_KEY: cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898 #0x83197e2e58929c41f6ebe3b4ea6d6a07cfb4a97b
-        WALLET_PASS: pass
-    command: /root/src/run-wrkoracle.sh ${SUBNET_IP}
+        SUBNET_IP: ${SUBNET_IP}
+    command: /root/src/run-wrkoracle.sh ${SUBNET_IP}.3:26661
     container_name: finchain-wrkoracle
     networks:
       wrkchainnet:
@@ -216,12 +202,14 @@ services:
       context: Docker/wrkchain
       dockerfile: wrkchain_validator_ui/Dockerfile
       args:
-        MAINCHAIN_EXPLORER_URL: "http://localhost:8080"
-        MAINCHAIN_WEB3_PROVIDER_URL: "http://${SUBNET_IP}.11:8101"
+        MAINCHAIN_EXPLORER_URL: "http://localhost:3000"
+        MAINCHAIN_REST_URL: "http://localhost:1318"
         WRKCHAIN_EXPLORER_URL: "http://localhost:8081"
         WRKCHAIN_NAME: ${WRKCHAIN_NAME}
         WRKCHAIN_NETWORK_ID: 2339117895
-        WRKCHAIN_ROOT_WRITE_TIMEOUT: 30
+        WRKCHAIN_ID: 1
+        WRKCHAIN_OWNER: "und1x8pl6wzqf9atkm77ymc5vn5dnpl5xytmn200xy"
+        WRKCHAIN_WRITE_TIMEOUT: 60
         WRKCHAIN_WEB3_PROVIDER_URL: "http://${SUBNET_IP}.25:8547"
         WRKCHAIN_RPC_HOST: "${SUBNET_IP}.25"
         WRKCHAIN_RPC_PORT: 8547
@@ -232,7 +220,6 @@ services:
         THRESHOLD: ${THRESHOLD}
         TRACKED_TICKERS: ${TRACKED_TICKERS}
         UPDATE_TIME: ${UPDATE_TIME}
-        LEGACY_WRKCHAIN_ROOT: ${LEGACY_WRKCHAIN_ROOT}
         WRKCHAIN_PKEY_1: "cbb3de0ea413043e7ae615115e01d3435a7e2d66728f6739006fa5fe95e69898"
         WRKCHAIN_PKEY_2: "226cd6688ec379ef14ae04e9893e96c9adc612bd4f5360d2cb3c4380f9fa612c"
         WRKCHAIN_PKEY_3: "62eff7207e271faea97fe8d2d7ae12093c7cfe43b9e20ffd57232bf42f5cc899"

@@ -160,40 +160,28 @@
                 <td><a id="mainchain_block" target="_blank"></a></td>
             </tr>
             <tr>
-                <td>To</td>
-                <td><a id="mainchain_to" target="_blank"></a></td>
-            </tr>
-            <tr>
                 <td>From</td>
                 <td><a id="mainchain_from" target="_blank"></a></td>
             </tr>
             <tr>
-                <td>r</td>
-                <td><span id="mainchain_r"></span></td>
+                <td>PubKey Type</td>
+                <td><span id="mainchain_sig_pubkey_type"></span></td>
             </tr>
             <tr>
-                <td>s</td>
-                <td><span id="mainchain_s"></span></td>
+                <td>PubKey</td>
+                <td><span id="mainchain_sig_pubkey"></span></td>
             </tr>
             <tr>
-                <td>v</td>
-                <td><span id="mainchain_v"></span></td>
+                <td>Signature</td>
+                <td><span id="mainchain_sig"></span></td>
             </tr>
             <tr>
                 <td>Raw data</td>
                 <td><span id="mainchain_raw_data" class="tx_input_data"></span></td>
             </tr>
             <tr>
-                <td>Decoded data</td>
-                <td><span id="mainchain_decoded_data" class="tx_input_data"></span></td>
-            </tr>
-            <tr>
-                <td>Tx Receipt Status</td>
-                <td><span id="mainchain_receipt_status"></span></td>
-            </tr>
-            <tr>
-                <td>Tx Log ID</td>
-                <td><span id="mainchain_receipt_log_id"></span></td>
+                <td>Tx Timestamp</td>
+                <td><span id="mainchain_tx_timestamp" class="tx_input_data"></span></td>
             </tr>
         </table>
 
@@ -230,12 +218,10 @@
         $('#no_data').hide();
         $('#validation_container').hide();
 
-        let wrkChainRoot = new WRKChainRoot('<%= WRKCHAIN_ROOT_CONTRACT_ADDRESS%>',
-                                '<%= MAINCHAIN_WEB3_PROVIDER_URL%>',
+        let wrkChainRoot = new WRKChainRoot('<%= MAINCHAIN_REST_URL%>',
+                                <%= WRKCHAIN_ID%>,
                                 '<%= WRKCHAIN_WEB3_PROVIDER_URL%>',
-                                <%- JSON.stringify(WRKCHAIN_ROOT_ABI)%>,
-                                <%= WRKCHAIN_NETWORK_ID%>,
-                                <%= LEGACY_WRKCHAIN_ROOT%>);
+                                );
 
         $('#check_block').click(function() {
           let block_num = $('#block_num').val();
@@ -260,12 +246,15 @@
                   $('#validation_container').hide();
                   return;
                 }
-                if(root_data.returnValues._hash == '0x0000000000000000000000000000000000000000000000000000000000000000') {
+                if(root_data.length === 0) {
                   $('#no_data').text('No data currently stored in WRKChain Root for Block #' + block_num);
                   $('#no_data').show();
                   $('#validation_container').hide();
                   return;
                 }
+
+                let txData = root_data[0];
+                let msg = txData.tx.value.msg[0].value;
 
                 $('#validation_container').show();
                 $('#no_data').text('');
@@ -281,8 +270,8 @@
 
                 //Block hash
                 $('#block_hash').text(block.hash);
-                $('#wrkchain_root_hash').text(root_data.returnValues._hash);
-                if(root_data.returnValues._hash == block.hash) {
+                $('#wrkchain_root_hash').text(msg.blockhash);
+                if(msg.blockhash == block.hash) {
                   $('#hash_valid').text("YES");
                   $('#hash_valid').css('color', 'green');
                   hash_valid = true;
@@ -293,8 +282,8 @@
 
                 //Parent Hash
                 $('#parent_block_hash').text(block.parentHash);
-                $('#parent_wrkchain_root_hash').text(root_data.returnValues._parentHash);
-                if(root_data.returnValues._parentHash == block.parentHash) {
+                $('#parent_wrkchain_root_hash').text(msg.parenthash);
+                if(msg.parenthash == block.parentHash) {
                   $('#parent_hash_valid').text("YES");
                   $('#parent_hash_valid').css('color', 'green');
                   parent_hash_valid = true;
@@ -305,8 +294,8 @@
 
                 //Tx Root
                 $('#block_tx_root').text(block.transactionsRoot);
-                $('#wrkchain_tx_root').text(root_data.returnValues._txRoot);
-                if(root_data.returnValues._txRoot == block.transactionsRoot) {
+                $('#wrkchain_tx_root').text(msg.hash2);
+                if(msg.hash2 == block.transactionsRoot) {
                   $('#tx_root_valid').text("YES");
                   $('#tx_root_valid').css('color', 'green');
                   tx_valid = true;
@@ -317,8 +306,8 @@
 
                 //State Root
                 $('#block_state_root').text(block.stateRoot);
-                $('#wrkchain_state_root').text(root_data.returnValues._stateRoot);
-                if(root_data.returnValues._stateRoot == block.stateRoot) {
+                $('#wrkchain_state_root').text(msg.hash3);
+                if(msg.hash3 == block.stateRoot) {
                   $('#state_root_valid').text("YES");
                   $('#state_root_valid').css('color', 'green');
                   state_valid = true;
@@ -329,8 +318,8 @@
 
                 //Receipts Root
                 $('#block_receipts_root').text(block.receiptsRoot);
-                $('#wrkchain_receipts_root').text(root_data.returnValues._receiptRoot);
-                if(root_data.returnValues._receiptRoot == block.receiptsRoot) {
+                $('#wrkchain_receipts_root').text(msg.hash1);
+                if(msg.hash1 == block.receiptsRoot) {
                   $('#receipts_root_valid').text("YES");
                   $('#receipts_root_valid').css('color', 'green');
                   receipts_valid = true;
@@ -353,75 +342,22 @@
                 }
 
                 //Mainchain Proof
-                $('#mainchain_tx').text(root_data.transactionHash);
-                $('#mainchain_tx').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/tx/' + root_data.transactionHash);
+                if(txData != undefined) {
+                    $('#mainchain_tx').text(txData.txhash);
+                    $('#mainchain_tx').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/transactions/' + txData.txhash);
 
-                wrkChainRoot.getWrkchainRootTx(root_data.transactionHash, function(txData) {
-                    if(txData != undefined) {
-                        $('#mainchain_block').text(txData.blockNumber);
-                        $('#mainchain_block').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/block/' + txData.blockNumber);
+                    $('#mainchain_block').text(txData.height);
+                    $('#mainchain_block').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/blocks/' + txData.height);
+                    $('#mainchain_from').text(txData.logs[0].events[0].attributes[1].value);
+                    $('#mainchain_from').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/address/' + txData.logs[0].events[0].attributes[1].value);
 
-                        $('#mainchain_to').text(txData.to);
-                        $('#mainchain_to').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/address/' + txData.to);
 
-                        $('#mainchain_from').text(txData.from);
-                        $('#mainchain_from').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/address/' + txData.from);
-
-                        $('#mainchain_r').text(txData.r);
-                        $('#mainchain_s').text(txData.s);
-                        $('#mainchain_v').text(txData.v);
-
-                        $('#mainchain_raw_data').text(txData.input);
-
-                        $.get('/decode?d='+txData.input,
-                            function(data, status, xhr) {
-                                if(status == 'success') {
-
-                                    let decodedDataHtml = '';
-                                    decodedDataHtml += '<strong>Contract Method Called:</strong> ' + data.method + '<br>';
-                                    decodedDataHtml += '<strong>Contract Data Inputs</strong><br><br>';
-
-                                    decodedDataHtml += '<table>';
-                                    decodedDataHtml += '<thead>';
-                                    decodedDataHtml += '<tr>';
-                                    decodedDataHtml += '<th>Name</th><th>Type</th><th>Data</th>';
-                                    decodedDataHtml += '</tr>';
-                                    decodedDataHtml += '</thead>';
-                                    decodedDataHtml += '<tbody>';
-
-                                    for(i=0; i< data.types.length; i++) {
-                                        let inputName = data.names[i];
-                                        let inputType = data.types[i];
-                                        let inputData = data.inputs[i];
-                                        decodedDataHtml += '<tr>';
-                                        decodedDataHtml += '<td>' + inputName + '</td>';
-                                        decodedDataHtml += '<td>' + inputType + '</td>';
-                                        decodedDataHtml += '<td>' + inputData + '</td>';
-                                        decodedDataHtml += '</tr>';
-                                    }
-                                    decodedDataHtml += '</tbody>';
-                                    decodedDataHtml += '</table>';
-
-                                    $('#mainchain_decoded_data').html(decodedDataHtml);
-                                } else {
-                                    $('#mainchain_decoded_data').text("Failed to decode data");
-                                }
-                            }
-                        );
-                    }
-                });
-
-                wrkChainRoot.getWrkchainRootTxReceipt(root_data.transactionHash, function(receiptData) {
-                    if(receiptData != undefined) {
-                        if(receiptData.status == "0x1") {
-                            $('#mainchain_receipt_status').text("Success").css("color", "green");
-                        } else {
-                            $('#mainchain_receipt_status').text("Fail").css("color", "red");
-                        }
-
-                        $('#mainchain_receipt_log_id').text(receiptData.logs[0].id);
-                    }
-                });
+                    $('#mainchain_sig_pubkey_type').text(txData.tx.value.signatures[0].pub_key.type);
+                    $('#mainchain_sig_pubkey').text(txData.tx.value.signatures[0].pub_key.value);
+                    $('#mainchain_sig').text(txData.tx.value.signatures[0].signature);
+                    $('#mainchain_raw_data').text(txData.raw_log);
+                    $('#mainchain_tx_timestamp').text(txData.timestamp);
+                }
 
             });
         }

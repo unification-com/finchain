@@ -1,25 +1,11 @@
-function WRKChainRoot(_wrkchainRootContractAddress,
-                       _mainchainWeb3ProviderUrl,
-                       _wrkchainWeb3ProviderUrl,
-                       _wrkchainRootAbi,
-                       _wrkchainNetworkId,
-                       _legacyWrkchainRoot) {
+function WRKChainRoot(_mainchainRest,
+                      _wrkchainId,
+                       _wrkchainWeb3ProviderUrl
+) {
 
-  this.web3jsMainchain = null;
-  this.contractAddress = _wrkchainRootContractAddress;
-  this.abi = _wrkchainRootAbi;
-  wrkchainNetworkId = parseInt(_wrkchainNetworkId);
-  if(!_legacyWrkchainRoot) {
-      wrkchainNetworkId = numStringToBytes32(_wrkchainNetworkId)
-  }
-  this.wrkchainNetworkId = wrkchainNetworkId
-
-  let self = this;
-
-  this.web3jsMainchain = new Web3(new Web3.providers.HttpProvider(_mainchainWeb3ProviderUrl));
-  this.web3jsWrkchain = new Web3(new Web3.providers.HttpProvider(_wrkchainWeb3ProviderUrl));
-
-  this.wrkchainRootContract = new this.web3jsMainchain.eth.Contract(this.abi, this.contractAddress);
+    this.mainchainRest = _mainchainRest;
+    this.wrkchainId = _wrkchainId;
+    this.web3jsWrkchain = new Web3(new Web3.providers.HttpProvider(_wrkchainWeb3ProviderUrl));
 }
 
 WRKChainRoot.prototype.validateBlock = function(_block_num, _callback) {
@@ -47,18 +33,10 @@ WRKChainRoot.prototype.runBlockHeaderFromRoot = async function (_block_num) {
 WRKChainRoot.prototype.getBlockHeaderFromRoot = function (_block_num) {
   let self = this;
   return new Promise(resolve => {
-    self.wrkchainRootContract.getPastEvents('RecordHeader', {
-      filter: {_chainId: this.wrkchainNetworkId, _height: _block_num},
-      fromBlock: 0,
-      toBlock: 'latest'
-    }, (error, events) => {
-      if(error) {
-         console.log("error", error);
-      } else {
-         let latestEvent = events[0]
-         resolve(latestEvent);
-      }
-    });
+      let url = self.mainchainRest + "/txs?page=1&limit=1&message.action=record_wrkchain_hash&record_wrkchain_block.wrkchain_block_height=" + _block_num + "&record_wrkchain_block.wrkchain_id=" + self.wrkchainId
+      $.get( url, function( data ) {
+          resolve(data.txs);
+      });
   });
 }
 

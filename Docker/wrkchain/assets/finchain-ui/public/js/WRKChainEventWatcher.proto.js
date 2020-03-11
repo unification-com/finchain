@@ -1,88 +1,26 @@
-function WRKChainEventWatcher(_contractAddress,
-                              _web3ProviderUrl,
-                              _abi,
-                              _wrkchainNetworkId,
-                              _legacyWrkchainRoot) {
+function WRKChainEventWatcher(_mainchainRest,
+                              _wrkchainId,
+                              _wrkchainOwner) {
 
-  this.web3js = null;
-  this.contractAddress = _contractAddress;
-  this.abi = _abi;
-  this.lastEvent = null;
-  wrkchainNetworkId = parseInt(_wrkchainNetworkId);
-  if(!_legacyWrkchainRoot) {
-      wrkchainNetworkId = numStringToBytes32(_wrkchainNetworkId)
-  }
-  this.wrkchainNetworkId = wrkchainNetworkId
-
-  let self = this;
-
-  this.web3js = new Web3(new Web3.providers.HttpProvider(_web3ProviderUrl));
-
-  this.wrkchainRootContract = new this.web3js.eth.Contract(this.abi,
-                                                           this.contractAddress
-                                                           );
+    this.mainchainRest = _mainchainRest;
+    this.lastEvent = null;
+    this.wrkchainId = _wrkchainId;
+    this.wrkchainOwner = _wrkchainOwner;
 }
 
 WRKChainEventWatcher.prototype.getLatestRecordedHeader = function(_callback) {
 
   let self = this;
+  let noToReturn = 20;
+  let url = this.mainchainRest + "/txs?message.sender=" + this.wrkchainOwner + "&page=1&limit="+noToReturn+"&message.action=record_wrkchain_hash&record_wrkchain_block.wrkchain_id=" + this.wrkchainId
 
-  this.getCurrentBlockNumber().then(blockNumber => {
-
-    let fromBlock = blockNumber - 100;
-    if(fromBlock < 0) {
-      fromBlock = 0;
-    }
-
-    let noToReturn = 20;
-
-    self.wrkchainRootContract.getPastEvents('RecordHeader', {
-      filter: {_chainId: this.wrkchainNetworkId},
-      fromBlock: fromBlock,
-      toBlock: 'latest'
-    }, (error, events) => {
-      if(error) {
-        console.log("error", error);
-        if(self.lastEvent != null) {
-           _callback(true, self.lastEvent);
-        } else {
-           _callback(false, error);
-        }
-      } else {
-        let latestEvent = events.slice(Math.max(events.length - noToReturn, 1));
-        latestEvent = latestEvent.reverse();
-        self.lastEvent = latestEvent;
-        _callback(true, latestEvent);
-      }
+    $.get( url, function( data ) {
+        let actual_page = data.page_total
+        let url = self.mainchainRest + "/txs?message.sender=" + self.wrkchainOwner + "&page=" + actual_page + "&limit="+noToReturn+"&message.action=record_wrkchain_hash&record_wrkchain_block.wrkchain_id=" + self.wrkchainId
+        $.get( url, function( data ) {
+            let txs = data.txs.reverse()
+            self.lastEvent = txs;
+            _callback(true, txs);
+        });
     });
-    return;
-  });
-}
-
-WRKChainEventWatcher.prototype.getCurrentBlockNumber = async function () {
-  let blockNumber = await this.web3js.eth.getBlockNumber();
-  return blockNumber;
-}
-
-WRKChainEventWatcher.prototype.getChainId = async function () {
-  let blockNumber = await this.web3js.eth.getBlockNumber();
-  return blockNumber;
-}
-
-function numStringToBytes32(num) {
-   var bn = new Web3.utils.BN(num).toTwos(256);
-   return padToBytes32(bn.toString(16));
-}
-
-function bytes32ToNumString(bytes32str) {
-    bytes32str = bytes32str.replace(/^0x/, '');
-    var bn = new Web3.utils.BN(bytes32str, 16).fromTwos(256);
-    return bn.toString();
-}
-
-function padToBytes32(n) {
-    while (n.length < 64) {
-        n = "0" + n;
-    }
-    return "0x" + n;
 }

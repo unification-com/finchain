@@ -1,0 +1,17 @@
+broadcast-mode = "block"
+chain-id = "UND-Mainchain-DevNet"
+frequency = "60"
+from = "wrk"
+hash1 = "ReceiptHash"
+hash2 = "TxHash"
+hash3 = "Root"
+indent = true
+keyring-backend = "test"
+mainchain-rest = "http://172.25.0.7:1318"
+node = "tcp://172.25.0.3:26661"
+output = "json"
+parent-hash = true
+trust-node = false
+wrkchain-id = "1"
+wrkchain-rpc = "http://172.25.0.25:8547"
+wrkchain-type = "geth"
