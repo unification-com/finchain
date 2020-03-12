@@ -349,7 +349,7 @@
                     $('#mainchain_block').text(txData.height);
                     $('#mainchain_block').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/blocks/' + txData.height);
                     $('#mainchain_from').text(txData.logs[0].events[0].attributes[1].value);
-                    $('#mainchain_from').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/address/' + txData.logs[0].events[0].attributes[1].value);
+                    $('#mainchain_from').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/account/' + txData.logs[0].events[0].attributes[1].value);
 
 
                     $('#mainchain_sig_pubkey_type').text(txData.tx.value.signatures[0].pub_key.type);
