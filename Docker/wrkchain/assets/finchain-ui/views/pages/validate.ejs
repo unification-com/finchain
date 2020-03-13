@@ -71,7 +71,7 @@
           <td><span id="block_hash"></span></td>
         <tr>
         <tr>
-          <td><strong>WRKChain Root Smart contract: </strong></td>
+          <td><strong>WRKChain Root on Mainchain: </strong></td>
           <td><span id="wrkchain_root_hash"></span></td>
         <tr>
         <tr>
@@ -88,7 +88,7 @@
           <td><span id="parent_block_hash"></span></td>
         <tr>
         <tr>
-          <td><strong>WRKChain Root Smart contract: </strong></td>
+          <td><strong>WRKChain Root on Mainchain: </strong></td>
           <td><span id="parent_wrkchain_root_hash"></span></td>
         <tr>
         <tr>
@@ -105,7 +105,7 @@
           <td><span id="block_tx_root"></span></td>
         <tr>
         <tr>
-          <td><strong>WRKChain Root Smart contract: </strong></td>
+          <td><strong>WRKChain Root on Mainchain: </strong></td>
           <td><span id="wrkchain_tx_root"></span></td>
         <tr>
         <tr>
@@ -122,7 +122,7 @@
           <td><span id="block_state_root"></span></td>
         <tr>
         <tr>
-          <td><strong>WRKChain Root Smart contract: </strong></td>
+          <td><strong>WRKChain Root on Mainchain: </strong></td>
           <td><span id="wrkchain_state_root"></span></td>
         <tr>
         <tr>
@@ -139,7 +139,7 @@
           <td><span id="block_receipts_root"></span></td>
         <tr>
         <tr>
-          <td><strong>WRKChain Root Smart contract: </strong></td>
+          <td><strong>WRKChain Root on Mainchain: </strong></td>
           <td><span id="wrkchain_receipts_root"></span></td>
         <tr>
         <tr>
@@ -241,13 +241,13 @@
             wrkChainRoot.validateBlock(block_num, function(block, root_data) {
 
                 if(root_data === undefined) {
-                  $('#no_data').text('No data currently stored in WRKChain Root for Block #' + block_num);
+                  $('#no_data').text('No data currently stored in WRKChain Root on Mainchain for Block #' + block_num);
                   $('#no_data').show();
                   $('#validation_container').hide();
                   return;
                 }
                 if(root_data.length === 0) {
-                  $('#no_data').text('No data currently stored in WRKChain Root for Block #' + block_num);
+                  $('#no_data').text('No data currently stored in WRKChain Root on Mainchain for Block #' + block_num);
                   $('#no_data').show();
                   $('#validation_container').hide();
                   return;
@@ -349,7 +349,7 @@
                     $('#mainchain_block').text(txData.height);
                     $('#mainchain_block').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/blocks/' + txData.height);
                     $('#mainchain_from').text(txData.logs[0].events[0].attributes[1].value);
-                    $('#mainchain_from').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/address/' + txData.logs[0].events[0].attributes[1].value);
+                    $('#mainchain_from').attr('href','<%= MAINCHAIN_EXPLORER_URL%>/account/' + txData.logs[0].events[0].attributes[1].value);
 
 
                     $('#mainchain_sig_pubkey_type').text(txData.tx.value.signatures[0].pub_key.type);
