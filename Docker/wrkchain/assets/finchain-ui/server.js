@@ -23,7 +23,7 @@ app.get('/', function(req, res) {
         THRESHOLD: process.env.THRESHOLD,
         TRADING: 'open',
         WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL,
-        TIMESPAN: 24
+        TIMESPAN: 72
     });
 });
 
@@ -33,7 +33,7 @@ app.get('/track/:ticker?/:trading?/:timespan?', function(req, res) {
     if(selectedTicker === undefined || selectedTicker === null) {
         selectedTicker = trackedTickers[0];
     }
-    let timespan = 24;
+    let timespan = 72;
     if(req.params.timespan !== undefined) {
         timespan = parseInt(req.params.timespan);
     }
