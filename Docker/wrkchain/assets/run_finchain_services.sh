@@ -1,7 +1,8 @@
 #!/bin/bash
 
 cd /root/finchain-oracle-contract
-truffle migrate --reset 2>&1 | tee sc_log.txt
+sleep 15
+truffle migrate 2>&1 | tee sc_log.txt
 
 WRKCHAIN_NETWORK_ID_ENV=$(grep 'WRKCHAIN_NETWORK_ID' /root/finchain-oracle-contract/.env)
 WRKCHAIN_NETWORK_ID=${WRKCHAIN_NETWORK_ID_ENV##*=}

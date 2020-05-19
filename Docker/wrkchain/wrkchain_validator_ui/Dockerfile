@@ -61,6 +61,8 @@ RUN echo "MAINCHAIN_EXPLORER_URL=${MAINCHAIN_EXPLORER_URL}" >> /root/finchain-or
     chmod +x /root/run_finchain_services.sh && \
     echo "alias ll='ls -la'" >> /root/.bashrc
 
-RUN cd /root/finchain-oracle-contract && rm -rf build && npm install && truffle compile
+RUN cat /root/finchain-oracle-contract/.env
+
+RUN cd /root/finchain-oracle-contract && rm -rf /root/finchain-oracle-contract/build && npm install && truffle compile
 
 CMD cd /root && ./run_finchain_services.sh
