@@ -118,10 +118,12 @@
             <table class="table table-dark">
                 <thead>
                 <tr>
-                    <th style="width: 150px;" scope="col">Alpha Vantage</th>
-                    <th style="width: 150px;" scope="col">World Trading</th>
-                    <th style="width: 150px;" scope="col">IEX Cloud</th>
+                    <th style="width: 150px;" scope="col">Source</th>
                     <th style="width: 170px;" scope="col">Time</th>
+                    <th style="width: 150px;" scope="col">Price</th>
+                    <th style="width: 150px;" scope="col">Source</th>
+                    <th style="width: 170px;" scope="col">Time</th>
+                    <th style="width: 150px;" scope="col">Price</th>
                     <th style="width: 50px;" scope="col">Threshold</th>
                     <th style="width: 70px;" scope="col">Trading</th>
                     <th style="width: 100px;" scope="col">Block</th>
@@ -176,6 +178,33 @@
 
 
 <script type="text/javascript">
+
+    var colourList = [
+                {
+                    'backgroundColor': 'rgba(255, 99, 132, 0.1)',
+                    'borderColor': 'rgba(255, 99, 132, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(75, 192, 192, 0.1)',
+                    'borderColor': 'rgba(75, 192, 192, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(80, 135, 100, 0.1)',
+                    'borderColor': 'rgba(80, 135, 100, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(73, 69, 156, 0.1)',
+                    'borderColor': 'rgba(73, 69, 156, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(216, 234, 18, 0.1)',
+                    'borderColor': 'rgba(216, 234, 18, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(255, 102, 51, 0.1)',
+                    'borderColor': 'rgba(255, 102, 51, 1)',
+                },
+            ];
 
      var tickerLookup = {
          "AAPL": "Apple Inc.",
@@ -244,13 +273,15 @@
                     $('#disc_table').html('');
                     for (i = 0; i < data.length; i++) {
                         let evnt = data[i];
-                        let timestamp = evnt.returnValues._timestamp;
+                        let timestamp1 = evnt.returnValues._timestamp1;
+                        let timestamp2 = evnt.returnValues._timestamp2;
                         let txShort = evnt.transactionHash.substring(2, 10);
                         let price1 = parseFloat(evnt.returnValues._price1);
                         let price2 = parseFloat(evnt.returnValues._price2);
-                        let price3 = parseFloat(evnt.returnValues._price3);
+                        let source1 = evnt.returnValues._source1;
+                        let source2 = evnt.returnValues._source2;
                         let priceOk = false;
-                        if(price1 > 0 && price2 > 0 && price3 > 0) {
+                        if(price1 > 0 && price2 > 0) {
                             priceOk = true;
                         }
 
@@ -260,20 +291,22 @@
                                 display = true;
                             }
                         } else {
-                            if(isTradingHours(timestamp) && priceOk === true) {
+                            if(isTradingHours(timestamp1) && isTradingHours(timestamp2) && priceOk === true) {
                                 display = true;
                             }
                         }
 
                         if(display === true) {
                             let trHtml = '<tr>';
-                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price1) / 100 + '</td>';
-                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price2) / 100 + '</td>';
-                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price3) / 100 + '</td>';
-                            trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
+                            trHtml += '<td>' + source1 + '</td>';
+                            trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp1) + '</td>';
+                            trHtml += '<td>$' + price1 / 100 + '</td>';
+                            trHtml += '<td>' + source2 + '</td>';
+                            trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp2) + '</td>';
+                            trHtml += '<td>$' + price2 / 100 + '</td>';
                             trHtml += '<td>$' + parseFloat(evnt.returnValues._threshold) / 100 + '</td>';
 
-                            if(isTradingHours(timestamp)) {
+                            if(isTradingHours(timestamp1)) {
                                 trHtml += '<td>Open</td>';
                             } else {
                                 trHtml += '<td>Closed</td>';
@@ -439,22 +472,22 @@
         });
 
 
-        function drawChart(data) {
-
-            let colours = {
-                'Alpha Vantage': {
-                    'backgroundColor': 'rgba(255, 99, 132, 0.1)',
-                    'borderColor': 'rgba(255, 99, 132, 1)',
-                },
-                'World Trading': {
-                    'backgroundColor': 'rgba(54, 162, 235, 0.1)',
-                    'borderColor': 'rgba(54, 162, 235, 1)',
-                },
-                'IEX Cloud': {
-                    'backgroundColor': 'rgba(75, 192, 192, 0.1)',
-                    'borderColor': 'rgba(75, 192, 192, 1)',
-                }
+        async function drawChart(data) {
+            let oracles = await finchainDiscrepencyWatcher.getAllOracles();
+            let sources = [];
+            for (let i = 0; i < oracles.length; i++) {
+                let src = await finchainDiscrepencyWatcher.getSource(oracles[i]);
+                sources.push(src);
             }
+
+            let colours = {};
+            let averages = {};
+            for(let i = 0; i < sources.length; i++) {
+                colours[sources[i]] = colourList[i];
+                //calculate averages for missing data...
+                averages[sources[i]] = {avg:0,cnt:0,tot:0};
+            }
+
             let minPrice = 100000000.0;
             let maxPrice = 0.0;
 
@@ -464,9 +497,6 @@
             let dataSets = [];
             let labels = [];
             let dataByDate = {};
-
-            //calculate averages for missing data...
-            let averages = {'Alpha Vantage':{avg:0,cnt:0,tot:0},'World Trading':{avg:0,cnt:0,tot:0}, 'IEX Cloud':{avg:0,cnt:0,tot:0}};
 
             for (i = 0; i < data.length; i++) {
                 let evnt = data[i];
@@ -494,15 +524,13 @@
                 }
             }
 
-            averages['Alpha Vantage'].avg = (averages['Alpha Vantage'].tot / averages['Alpha Vantage'].cnt).toFixed(2);
-            averages['World Trading'].avg = (averages['World Trading'].tot / averages['World Trading'].cnt).toFixed(2);
-            averages['IEX Cloud'].avg = (averages['IEX Cloud'].tot / averages['IEX Cloud'].cnt).toFixed(2);
-
+            for(let i = 0; i < sources.length; i++) {
+                averages[sources[i]].avg = (averages[sources[i]].tot / averages[sources[i]].cnt).toFixed(2);
+            }
             // last submitted value - begin with avg
-            averages['Alpha Vantage'].last = averages['Alpha Vantage'].avg;
-            averages['World Trading'].last = averages['World Trading'].avg;
-            averages['IEX Cloud'].last = averages['IEX Cloud'].avg;
-
+            for(let i = 0; i < sources.length; i++) {
+                averages[sources[i]].last = averages[sources[i]].avg;
+            }
 
             for (i = 0; i < data.length; i++) {
                 let evnt = data[i];
@@ -522,7 +550,6 @@
                     labels.push(dateTime);
                     // initialise with last submitted value to fill missing data
                     dataByDate[dateTime] = {'Alpha Vantage':parseFloat(averages['Alpha Vantage'].last),
-                                            'World Trading':parseFloat(averages['World Trading'].last),
                                             'IEX Cloud':parseFloat(averages['IEX Cloud'].last)};
                 }
                 if(price > 0 && display === true) {
