@@ -28,7 +28,7 @@ exports.alphaVantageApi = (trackedTickers) => {
         let tickers = trackedTickers.split(",");
         let tickerChunks = [];
 
-        //split into chinks of 5. Max is 5 requests per minute for AV
+        //split into chunks of 5. Max is 5 requests per minute for AV
         while(tickers.length > 0) {
             tickerChunks.push(tickers.splice(0, 5));
         }

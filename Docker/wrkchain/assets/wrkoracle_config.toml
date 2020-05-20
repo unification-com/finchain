@@ -1,5 +1,5 @@
 broadcast-mode = "block"
-chain-id = "UND-Mainchain-DevNet"
+chain-id = "FUND-Mainchain-DevNet"
 frequency = "60"
 from = "wrk"
 hash1 = "ReceiptHash"

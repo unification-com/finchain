@@ -107,3 +107,13 @@ FinchainDiscrepencyWatcher.prototype.getCurrentThreshold = async function() {
     let threshold = await this.finchainContract.methods.threshold().call();
     return threshold;
 }
+
+FinchainDiscrepencyWatcher.prototype.getAllOracles = async function() {
+    let oracles = await this.finchainContract.methods.getAllOracles().call();
+    return oracles;
+}
+
+FinchainDiscrepencyWatcher.prototype.getSource = async function(oracle) {
+    let source = await this.finchainContract.methods.getSource(oracle).call();
+    return source;
+}

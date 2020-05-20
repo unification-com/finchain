@@ -1,11 +1,4 @@
-# Finchain: A WRKChain Demo
-
-## Public Finchain Demo
-
-The public Finchain Demo can be viewed here: https://finchain.unification.io  
-The public Finchain Block explorer can be found here: https://finchain.unification.io/explorer
-
-The public Finchain demo writes its block hashes to the UND Testnet.
+# Finchain: A WRKChain
 
 ## Running Finchain Locally
 
