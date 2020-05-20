@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const ContractJsonPath = './build/contracts/Finchain.json'
+const ContractJsonPath = './build/contracts/Stocks.json'
 
 function main() {
     let args = process.argv.slice(2);

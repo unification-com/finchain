@@ -1,6 +1,6 @@
 pragma solidity >= 0.4.22;
 
-contract Finchain {
+contract Stocks {
      address public owner;
      uint public threshold;
 

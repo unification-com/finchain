@@ -1,8 +1,8 @@
-const Finchain = artifacts.require("Finchain");
+const Stocks = artifacts.require("Stocks");
 require("dotenv").config();
 
 module.exports = function(deployer) {
   deployer.deploy(
-    Finchain,
+    Stocks,
     process.env.THRESHOLD)
 };
