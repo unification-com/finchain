@@ -9,4 +9,7 @@ undcli tx wrkchain register --moniker="finchain" --genesis="$SHA_GENESIS" --name
 
 sleep 60
 
+WRKORACLE_VERSION=$(wrkoracle version)
+echo "Running WRKOracle v${WRKORACLE_VERSION}"
+
 wrkoracle run 2>&1 | tee /root/wrkoracle_log.txt
