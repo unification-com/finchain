@@ -7,68 +7,160 @@ const InputDataDecoder = require('ethereum-input-data-decoder');
 // set the view engine to ejs
 app.set('view engine', 'ejs');
 
-app.use('/',express.static(__dirname + '/public'));
+app.use('/', express.static(__dirname + '/public'));
 
 let trackedTickers = process.env.TRACKED_TICKERS.split(",");
+let trackedCryptosGoinGeckoIds = process.env.TRACKED_CRYPTOS.split(",");
+let trackedCryptos = [];
+console.log(trackedCryptosGoinGeckoIds)
+const coinGeckoIdLookup = {
+    "bitcoin": "BTC",
+    "ethereum": "ETH",
+    "xrp": "XRP",
+    "bitcoin-cash": "BCH",
+    "litecoin": "LTC",
+    "eos": "EOS",
+    "stellar": "XLM",
+    "monero": "XMR",
+    "ethereum-classic": "ETC",
+    "unification": "FUND",
+    "matic-network": "MATIC",
+}
 
-app.get('/', function(req, res) {
-    res.render('pages/listener',{
+for(let i=0; i<trackedCryptosGoinGeckoIds.length; i++) {
+    trackedCryptos.push(coinGeckoIdLookup[trackedCryptosGoinGeckoIds[i]]);
+}
+
+app.get('/', function (req, res) {
+    res.render('pages/crypto', {
         WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
-        FINCHAIN_ORACLE_ABI: JSON.parse(process.env.FINCHAIN_ORACLE_ABI),
-        FINCHAIN_ORACLE_CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS,
-        UPDATE_TIME: process.env.UPDATE_TIME / 1000,
-        TRACKED_TICKERS: trackedTickers,
-        TICKER: trackedTickers[0],
-        THRESHOLD: process.env.THRESHOLD,
+        FINCHAIN_ORACLE_ABI: JSON.parse(process.env.CRYPTO_ORACLE_ABI),
+        FINCHAIN_ORACLE_CONTRACT_ADDRESS: process.env.CRYPTO_CONTRACT_ADDRESS,
+        UPDATE_TIME: process.env.CRYPTO_UPDATE_TIME / 1000,
+        TRACKED_TICKERS: trackedCryptos,
+        TICKER: trackedCryptos[0],
+        THRESHOLD: process.env.CRYPTO_THRESHOLD,
         TRADING: 'open',
         WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL,
-        TIMESPAN: 72
+        TIMESPAN: 1
+    });
+});
+
+app.get('/crypto', function (req, res) {
+    res.render('pages/crypto', {
+        WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
+        WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
+        FINCHAIN_ORACLE_ABI: JSON.parse(process.env.CRYPTO_ORACLE_ABI),
+        FINCHAIN_ORACLE_CONTRACT_ADDRESS: process.env.CRYPTO_CONTRACT_ADDRESS,
+        UPDATE_TIME: process.env.CRYPTO_UPDATE_TIME / 1000,
+        TRACKED_TICKERS: trackedCryptos,
+        TICKER: trackedCryptos[0],
+        THRESHOLD: process.env.CRYPTO_THRESHOLD,
+        TRADING: 'open',
+        WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL,
+        TIMESPAN: 1
     });
 });
 
 // event listener page
-app.get('/track/:ticker?/:trading?/:timespan?', function(req, res) {
+app.get('/crypto/track/:ticker?/:timespan?', function (req, res) {
     let selectedTicker = req.params.ticker;
-    if(selectedTicker === undefined || selectedTicker === null) {
+    if (selectedTicker === undefined || selectedTicker === null) {
         selectedTicker = trackedTickers[0];
     }
-    let timespan = 72;
-    if(req.params.timespan !== undefined) {
+    let timespan = 1;
+    if (req.params.timespan !== undefined) {
         timespan = parseInt(req.params.timespan);
     }
 
-    switch(timespan) {
+    switch (timespan) {
+        case 1:
+        case 2:
+        case 3:
+        case 6:
+        case 12:
         case 24:
         case 48:
-        case 72:
-        case 96:
-        case 168:
+        //case 72:
+        //case 96:
+        //case 168:
             break;
         default:
-            timespan = 24;
+            timespan = 1;
     }
 
-    res.render('pages/listener',{
+    res.render('pages/crypto', {
         WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
-        FINCHAIN_ORACLE_ABI: JSON.parse(process.env.FINCHAIN_ORACLE_ABI),
-        FINCHAIN_ORACLE_CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS,
-        UPDATE_TIME: process.env.UPDATE_TIME / 1000,
-        TRACKED_TICKERS: trackedTickers,
+        FINCHAIN_ORACLE_ABI: JSON.parse(process.env.CRYPTO_ORACLE_ABI),
+        FINCHAIN_ORACLE_CONTRACT_ADDRESS: process.env.CRYPTO_CONTRACT_ADDRESS,
+        UPDATE_TIME: process.env.CRYPTO_UPDATE_TIME / 1000,
+        TRACKED_TICKERS: trackedCryptos,
         TICKER: selectedTicker,
-        THRESHOLD: process.env.THRESHOLD,
-        TRADING: req.params.trading,
+        THRESHOLD: process.env.CRYPTO_THRESHOLD,
         WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL,
         TIMESPAN: timespan
     });
 });
 
+// app.get('/stocks', function (req, res) {
+//     res.render('pages/stocks', {
+//         WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
+//         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
+//         FINCHAIN_ORACLE_ABI: JSON.parse(process.env.FINCHAIN_ORACLE_ABI),
+//         FINCHAIN_ORACLE_CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS,
+//         UPDATE_TIME: process.env.UPDATE_TIME / 1000,
+//         TRACKED_TICKERS: trackedTickers,
+//         TICKER: trackedTickers[0],
+//         THRESHOLD: process.env.THRESHOLD,
+//         TRADING: 'open',
+//         WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL,
+//         TIMESPAN: 72
+//     });
+// });
+
+// event listener page
+// app.get('/stocks/track/:ticker?/:trading?/:timespan?', function (req, res) {
+//     let selectedTicker = req.params.ticker;
+//     if (selectedTicker === undefined || selectedTicker === null) {
+//         selectedTicker = trackedTickers[0];
+//     }
+//     let timespan = 72;
+//     if (req.params.timespan !== undefined) {
+//         timespan = parseInt(req.params.timespan);
+//     }
+//
+//     switch (timespan) {
+//         case 24:
+//         case 48:
+//         case 72:
+//         case 96:
+//         case 168:
+//             break;
+//         default:
+//             timespan = 24;
+//     }
+//
+//     res.render('pages/stocks', {
+//         WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
+//         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
+//         FINCHAIN_ORACLE_ABI: JSON.parse(process.env.FINCHAIN_ORACLE_ABI),
+//         FINCHAIN_ORACLE_CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS,
+//         UPDATE_TIME: process.env.UPDATE_TIME / 1000,
+//         TRACKED_TICKERS: trackedTickers,
+//         TICKER: selectedTicker,
+//         THRESHOLD: process.env.THRESHOLD,
+//         TRADING: req.params.trading,
+//         WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL,
+//         TIMESPAN: timespan
+//     });
+// });
 
 
 // wrkoracle watcher page
-app.get('/wrkoracle', function(req, res) {
-    res.render('pages/wrkoracle',{
+app.get('/wrkoracle', function (req, res) {
+    res.render('pages/wrkoracle', {
         MAINCHAIN_REST_URL: process.env.MAINCHAIN_REST_URL,
         MAINCHAIN_EXPLORER_URL: process.env.MAINCHAIN_EXPLORER_URL,
         WRKCHAIN_WRITE_TIMEOUT: process.env.WRKCHAIN_WRITE_TIMEOUT,
@@ -82,8 +174,8 @@ app.get('/wrkoracle', function(req, res) {
 
 
 // block validation page
-app.get('/validate/:block?', function(req, res) {
-    res.render('pages/validate',{
+app.get('/validate/:block?', function (req, res) {
+    res.render('pages/validate', {
         WRKCHAIN_WEB3_PROVIDER_URL: process.env.WRKCHAIN_WEB3_PROVIDER_URL,
         MAINCHAIN_REST_URL: process.env.MAINCHAIN_REST_URL,
         MAINCHAIN_EXPLORER_URL: process.env.MAINCHAIN_EXPLORER_URL,
@@ -96,7 +188,7 @@ app.get('/validate/:block?', function(req, res) {
     });
 });
 
-app.get('/decode', function(req, res) {
+app.get('/decode', function (req, res) {
 
     const result = decoder.decodeData(req.query.d);
 
@@ -106,12 +198,12 @@ app.get('/decode', function(req, res) {
     formattedResult['inputs'] = [];
     formattedResult['names'] = [];
 
-    for(i=0; i< result.types.length; i++) {
+    for (i = 0; i < result.types.length; i++) {
         let theType = result.types[i];
         formattedResult['types'].push(result.types[i]);
         formattedResult['names'].push(result.names[i]);
 
-        switch(theType) {
+        switch (theType) {
             case 'uint256':
                 let n = new Web3.utils.BN(result.inputs[i]);
                 formattedResult['inputs'].push(n.toString());
@@ -136,11 +228,11 @@ app.get('/decode', function(req, res) {
 const PORT = process.env.WRKCHAIN_VALIDATOR_SERVICE_PORT
 app.listen(PORT);
 
-console.log( "====================================");
-console.log( "= FINCHAIN UI READY =");
-console.log( "= -------------------------------- =");
-console.log( "=                                  =");
-console.log( "= open:                            =");
-console.log( "= http://localhost:" + PORT + "            =");
-console.log( "=                                  =");
-console.log( "====================================");
+console.log("====================================");
+console.log("= FINCHAIN UI READY =");
+console.log("= -------------------------------- =");
+console.log("=                                  =");
+console.log("= open:                            =");
+console.log("= http://localhost:" + PORT + "            =");
+console.log("=                                  =");
+console.log("====================================");
