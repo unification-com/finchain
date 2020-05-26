@@ -20,6 +20,7 @@ ARG IEX
 ARG THRESHOLD
 ARG CRYPTO_THRESHOLD
 ARG TRACKED_TICKERS
+ARG TRACKED_CRYPTOS
 ARG UPDATE_TIME
 ARG CRYPTO_UPDATE_TIME
 ARG CRYPTO_TIMEDIFF
@@ -53,6 +54,7 @@ RUN echo "MAINCHAIN_EXPLORER_URL=${MAINCHAIN_EXPLORER_URL}" >> /root/finchain-or
     echo "THRESHOLD=${THRESHOLD}" >> /root/finchain-oracle-contract/.env && \
     echo "CRYPTO_THRESHOLD=${CRYPTO_THRESHOLD}" >> /root/finchain-oracle-contract/.env && \
     echo "TRACKED_TICKERS=${TRACKED_TICKERS}" >> /root/finchain-oracle-contract/.env && \
+    echo "TRACKED_CRYPTOS=${TRACKED_CRYPTOS}" >> /root/finchain-oracle-contract/.env && \
     echo "UPDATE_TIME=${UPDATE_TIME}" >> /root/finchain-oracle-contract/.env && \
     echo "CRYPTO_UPDATE_TIME=${CRYPTO_UPDATE_TIME}" >> /root/finchain-oracle-contract/.env && \
     echo "CRYPTO_TIMEDIFF=${CRYPTO_TIMEDIFF}" >> /root/finchain-oracle-contract/.env && \
