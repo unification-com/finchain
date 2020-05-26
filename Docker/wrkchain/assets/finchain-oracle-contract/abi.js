@@ -4,15 +4,21 @@ const ContractJsonPath = './build/contracts/Stocks.json'
 
 function main() {
     let args = process.argv.slice(2);
-    let contract = JSON.parse(fs.readFileSync(ContractJsonPath, 'utf8'));
+    let contract = args[1];
+    let contractJsonPath = './build/contracts/Stocks.json';
+    if(contract === 'crypto') {
+        contractJsonPath = './build/contracts/Crypto.json';
+    }
+
+    let contractJson = JSON.parse(fs.readFileSync(contractJsonPath, 'utf8'));
 
     switch (args[0]) {
        case 'abi':
        default:
-           abi(contract);
+           abi(contractJson);
            break;
        case 'addr':
-           contract_address(contract, args[1]);
+           contract_address(contractJson, args[2]);
            break;
     }
 }
