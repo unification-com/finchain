@@ -16,7 +16,7 @@ console.log(trackedCryptosGoinGeckoIds)
 const coinGeckoIdLookup = {
     "bitcoin": "BTC",
     "ethereum": "ETH",
-    "xrp": "XRP",
+    "ripple": "XRP",
     "bitcoin-cash": "BCH",
     "litecoin": "LTC",
     "eos": "EOS",
