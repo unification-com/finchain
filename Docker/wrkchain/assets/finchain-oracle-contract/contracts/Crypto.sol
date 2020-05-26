@@ -1,8 +1,9 @@
 pragma solidity >= 0.4.22;
 
 contract Crypto {
-     address public owner;
-     uint public threshold;
+    address public owner;
+    uint public threshold;
+    uint public timeDiff;
 
     modifier onlyOwner() {
      require (msg.sender == owner,
@@ -62,27 +63,27 @@ contract Crypto {
      */
      mapping(bytes32 => mapping(address => Currency)) currencies;
 
-     constructor (uint _threshold) public {
-        owner = msg.sender;
-        whiteList[owner] = true;
-        threshold = _threshold;
+     constructor (uint _threshold, uint _timeDiff) public {
+         owner = msg.sender;
+         whiteList[owner] = true;
+         threshold = _threshold;
+         timeDiff = _timeDiff;
      }
 
      function updateCurrency(
          string memory _ticker,
-         uint256 _price
+         uint256 _price,
+         uint256 _timestamp
          )
          public isAuthorized() {
 
          bytes32 tickerHash = keccak256(abi.encodePacked(_ticker));
 
-         uint timestamp = now;
+         currencies[tickerHash][msg.sender] = Currency({price: _price, timestamp: _timestamp});
 
-         currencies[tickerHash][msg.sender] = Currency({price: _price, timestamp: timestamp});
+         emit currencyData(msg.sender, _ticker, _price, _timestamp, tickerHash, sources[msg.sender]);
 
-         emit currencyData(msg.sender, _ticker, _price, timestamp, tickerHash, sources[msg.sender]);
-
-         compareCurrencies(_ticker, tickerHash, timestamp, msg.sender);
+         compareCurrencies(_ticker, tickerHash, _timestamp, msg.sender);
      }
 
      function compareCurrencies(string memory _ticker, bytes32 tickerHash, uint _timestamp, address _o1) public {
@@ -94,7 +95,7 @@ contract Crypto {
              uint ts2 = currencies[tickerHash][o2].timestamp;
              uint tsDiff = max(_timestamp, ts2) - min(_timestamp, ts2);
 
-             if(errorMargins(p1, p2) && tsDiff < 600 && _o1 != o2) {
+             if(errorMargins(p1, p2) && tsDiff < timeDiff && _o1 != o2) {
                  emit discrepancy(
                      _ticker,
                      _o1,
@@ -145,9 +146,9 @@ contract Crypto {
         threshold = _threshold;
      }
 
-     function configureErrorMargins(uint _threshold) public {
-         require(msg.sender == owner, "Only the owner of this contract can modify values");
-         threshold = _threshold;
+     function setTimeDiff(uint _timeDiff) public onlyOwner() {
+         require(_timeDiff > 0, "timeDiff must be > 0");
+         timeDiff = _timeDiff;
      }
 
      //function to determine the smallest between two values. Used as a way to 
