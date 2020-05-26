@@ -474,6 +474,18 @@
             window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/crypto/track/" + ticker + "/"  + ts;
         });
 
+         function compare_timestamp(a, b) {
+             // a should come before b in the sorted order
+             if (a.returnValues._timestamp < b.returnValues._timestamp) {
+                 return -1;
+                 // a should come after b in the sorted order
+             } else if (a.returnValues._timestamp > b.returnValues._timestamp) {
+                 return 1;
+                 // and and b are the same
+             } else {
+                 return 0;
+             }
+         }
 
         async function drawChart(data) {
             let oracles = await finchainDiscrepencyWatcher.getAllOracles();
@@ -494,7 +506,8 @@
             let minPrice = 100000000.0;
             let maxPrice = 0.0;
 
-            data = data.reverse();
+            //data = data.reverse();
+            data = data.sort(compare_timestamp);
             var ctx = document.getElementById('cryptoChart').getContext('2d');
 
             let dataSets = [];
