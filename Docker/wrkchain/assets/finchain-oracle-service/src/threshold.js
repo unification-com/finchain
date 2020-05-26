@@ -4,7 +4,7 @@ let args = process.argv.slice(2);
 let threshold = args[0];
 
 function setNewThreshold(_threshold){
-    ether.setThreshold(_threshold);
+    ether.setStockThreshold(_threshold);
 };
 
 async function updateThreshold(_threshold) {

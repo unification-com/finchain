@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%= WRKCHAIN_NAME%> Crypto Event Listener</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Font Awesome -->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+<!-- Google Fonts -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.18.0/css/mdb.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <header>
+      <!-- Fixed navbar -->
+      <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <a class="navbar-brand" href="#"><%= WRKCHAIN_NAME%></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active"><a class="nav-link" href="/">Crypto Watcher</a></li>
+            <!-- <li class="nav-item"><a class="nav-link" href="/stocks">Stock Watcher</a></li> -->
+            <li class="nav-item"><a class="nav-link" href="/wrkoracle">WRKOracle Watcher</a></li>
+            <li class="nav-item"><a class="nav-link" href="/validate"><%= WRKCHAIN_NAME%> Block Validation</a></li>
+            <li class="nav-item"><a class="nav-link" href="<%= WRKCHAIN_EXPLORER_URL%>" target="_blank"><%= WRKCHAIN_NAME%> Block Explorer</a></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Begin page content -->
+    <main role="main" class="container">
+        <br>
+    <h1 class="mt-5"><%= WRKCHAIN_NAME%> Crypto Watcher</h1>
+
+    <div id="oracle_container">
+
+        <table>
+            <tbody>
+            <tr>
+                <td>
+                    Track:
+                </td>
+                <td>
+                    <select id="tracker_select" class="form-control form-control-sm">
+                        <% for(var i=0; i < TRACKED_TICKERS.length; i++) {%>
+                            <option value="<%= TRACKED_TICKERS[i] %>" <% if(TRACKED_TICKERS[i] == TICKER) { %>selected="selected" <% } %>>
+                                <%= TRACKED_TICKERS[i] %>
+                            </option>
+                        <% } %>
+                    </select>
+                </td>
+                <td> &nbsp; </td>
+                <td>
+                    Time:
+                </td>
+                <td>
+                    <select id="timespan_select" class="form-control form-control-sm">
+
+                        <option value="1"<% if (!locals.TIMESPAN || TIMESPAN ==1) { %>selected="selected" <% } %>>1Hr</option>
+                        <option value="2"<% if (locals.TIMESPAN && TIMESPAN ==2) { %>selected="selected" <% } %>>2Hrs</option>
+                        <option value="3"<% if (!locals.TIMESPAN || TIMESPAN ==3) { %>selected="selected" <% } %>>3Hrs</option>
+                        <option value="6"<% if (locals.TIMESPAN && TIMESPAN ==6) { %>selected="selected" <% } %>>6Hrs</option>
+                        <option value="12"<% if (locals.TIMESPAN && TIMESPAN ==12) { %>selected="selected" <% } %>>12Hrs</option>
+                        <option value="24"<% if (!locals.TIMESPAN || TIMESPAN ==24) { %>selected="selected" <% } %>>24Hrs</option>
+                        <option value="48"<% if (locals.TIMESPAN && TIMESPAN ==48) { %>selected="selected" <% } %>>48Hrs</option>
+                    </select>
+                </td>
+                <td>  &nbsp; </td>
+            </tr>
+            </tbody>
+        </table>
+        <div>
+            <h2>Latest Prices Submitted<% if (locals.TICKER) { %>: <%= TICKER%> <% } %> <span id="company_name"></span></h2>
+            <table class="table table-striped table-bordered table-sm" id="crypto-table">
+                <thead>
+                <tr>
+                    <th scope="col" class="th-sm">Price</th>
+                    <th scope="col" class="th-sm">Exchange Time</th>
+                    <th scope="col" class="th-sm">Source</th>
+                    <th scope="col" class="th-sm">Finchains Block</th>
+                    <th scope="col" class="th-sm">Tx</th>
+                    <th scope="col" class="th-sm">Oracle</th>
+                </tr>
+                </thead>
+                <tbody id="crypto_table">
+                    <tr>
+                        <td colspan="6">
+                            <div class="load-container">
+                                <div class="loader-dark">Loading...</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th>Price
+                    </th>
+                    <th>Exchange Time
+                    </th>
+                    <th>Source
+                    </th>
+                    <th>Finchains Block
+                    </th>
+                    <th>Tx
+                    </th>
+                    <th>Oracle
+                    </th>
+                </tr>
+                </tfoot>
+            </table>
+
+            <% if (locals.TICKER) { %>
+            <canvas id="cryptoChart" width="400" height="200"></canvas>
+            <% } %>
+
+        </div>
+
+      <div>
+            <h2>Discrepancies Found - current threshold: $<span id="current_threshold"></span></h2>
+            <table class="table table-striped table-bordered table-sm" id="discrepancy-table">
+                <thead>
+                <tr>
+                    <th scope="col" class="th-sm">Source</th>
+                    <th scope="col" class="th-sm">Exchange Time</th>
+                    <th scope="col" class="th-sm">Price</th>
+                    <th scope="col" class="th-sm">Source</th>
+                    <th scope="col" class="th-sm">Exch. Time</th>
+                    <th scope="col" class="th-sm">Price</th>
+                    <th scope="col" class="th-sm">Difference</th>
+                    <th scope="col" class="th-sm">Finchains Block</th>
+                    <th scope="col" class="th-sm">Tx</th>
+                </tr>
+                </thead>
+                <tbody id="disc_table">
+                    <tr>
+                        <td colspan="9">
+                            <div class="load-container">
+                                <div class="loader-dark">Loading...</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th>Source</th>
+                    <th>Exchange Time</th>
+                    <th>Price</th>
+                    <th>Source</th>
+                    <th>Exchange Time</th>
+                    <th>Price</th>
+                    <th>Difference</th>
+                    <th>Finchains Block</th>
+                    <th>Tx</th>
+                </tr>
+                </tfoot>
+            </table>
+
+        </div>
+    </div>
+
+
+
+    </main>
+
+    <footer class="page-footer font-small pt-4">
+        <div class="container">
+            <div class="footer text-center py-3">
+                <span class="text-muted">
+                    Crypto Smart Contract, Finchain Address: <a href="<%= WRKCHAIN_EXPLORER_URL%>/address/<%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%>" target="_blank"><%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%></a>
+                </span>
+            </div>
+
+            <!-- Copyright -->
+            <div class="footer-copyright text-center py-3">&copy; 2019
+                <a href="https://unification.com" target="_blank"> unification.com</a>
+                | <a href="https://github.com/unification-com/finchain" target="_blank">View on Github</a>
+                | <a href="https://www.coingecko.com/api" target="_blank">Powered by CoinGecko</a>
+            </div>
+        </div>
+    </footer>
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.bundle.min.js"></script>
+
+    <!-- MDB core JavaScript -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.18.0/js/mdb.min.js"></script>
+
+    <script type="text/javascript" src="/js/datatables.min.js"></script>
+    <script type="text/javascript" src="/js/datatables2.min.js"></script>
+    <script type="text/javascript" src="/js/datatables-select.min.js"></script>
+
+<script type="text/javascript" src="/js/web3.min.js"></script>
+    <script type="text/javascript" src="/js/FinchainDiscrepencyWatcher.proto.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+
+
+<script type="text/javascript">
+
+    var colourList = [
+                {
+                    'backgroundColor': 'rgba(255, 99, 132, 0.1)',
+                    'borderColor': 'rgba(255, 99, 132, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(75, 192, 192, 0.1)',
+                    'borderColor': 'rgba(75, 192, 192, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(80, 135, 100, 0.1)',
+                    'borderColor': 'rgba(80, 135, 100, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(73, 69, 156, 0.1)',
+                    'borderColor': 'rgba(73, 69, 156, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(216, 234, 18, 0.1)',
+                    'borderColor': 'rgba(216, 234, 18, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(255, 102, 51, 0.1)',
+                    'borderColor': 'rgba(255, 102, 51, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(123, 102, 51, 0.1)',
+                    'borderColor': 'rgba(123, 102, 51, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(255, 152, 151, 0.1)',
+                    'borderColor': 'rgba(255, 152, 151, 1)',
+                },
+                {
+                    'backgroundColor': 'rgba(200, 122, 251, 0.1)',
+                    'borderColor': 'rgba(200, 122, 251, 1)',
+                },
+            ];
+
+     var tickerLookup = {
+         "BTC": "Bitcoin",
+         "ETH": "Ethereum",
+         "USDT": "Tether",
+         "XRP": "Ripple",
+         "BCH": "Bitcoin Cash",
+         "BSV": "Bitcoin SV",
+         "LTC": "Litecoin",
+         "BNB": "Binance Coin",
+         "EOS": "EOS",
+         "XTZ": "Tezos",
+         "ADA": "Cardano",
+         "LINK": "ChainLink",
+         "OKB": "OKB",
+         "XLM": "Stellar",
+         "CRO": "Crypto.com Coin",
+         "LEO": "Leo Token",
+         "XMR": "Monero",
+         "TRX": "TRON",
+         "HT": "Huobi Token",
+         "ETC": "Ethereum Classic",
+         "FUND": "Unification",
+         "MATIC": "Matic Network"
+     }
+
+     var exchangeLookup = {
+         "gdax": "Coinbase Pro",
+         'binance': "Binance",
+         'huobi': "Huobi Global",
+         'bittrex': "Bittrex",
+         'bitfinex': "Bitfinex",
+         'bitstamp':"Bitstamp",
+         'digifinex':"Digifinex",
+         'probit': "Probit",
+         'bitforex': "Bitforex"
+     }
+
+     $(document).ready(function () {
+
+        $('[data-toggle="tooltip"]').tooltip();
+
+        let companyName = tickerLookup["<%= TICKER%>"];
+        $('#company_name').text(companyName);
+
+        let tm = <%= UPDATE_TIME%>;
+        let tmObj = secondsToTime(tm)
+        $('#next_check').text(tmObj.h + ":" + tmObj.m + ":" + tmObj.s)
+
+        <% if (locals.TICKER) { %>
+        let ticker = "<%= TICKER%>";
+        <% } else { %>
+        let ticker = null;
+        <% } %>
+
+        <% if (locals.TIMESPAN) { %>
+        let timespan = <%= TIMESPAN%>;
+        <% } else { %>
+        let timespan = 24;
+        <% } %>
+
+        let finchainDiscrepencyWatcher = new FinchainDiscrepencyWatcher('<%= FINCHAIN_ORACLE_CONTRACT_ADDRESS%>',
+                                                                        '<%= WRKCHAIN_WEB3_PROVIDER_URL%>',
+                                                                         <%- JSON.stringify(FINCHAIN_ORACLE_ABI)%>);
+        updateWatcher();
+
+        function updateWatcher() {
+            $('#status').text("Fetching data");
+            $('#next_check_secs').text(<%= UPDATE_TIME%>);
+
+            finchainDiscrepencyWatcher.getThreshold(function(threshold) {
+                let th = parseFloat(threshold) / 100;
+                $('#current_threshold').text(th);
+            });
+
+
+            finchainDiscrepencyWatcher.getLatestEvents(ticker, timespan, "discrepancy", function(success, data) {
+                if(success && data != undefined) {
+                    $('#disc_table').html('');
+                    for (i = 0; i < data.length; i++) {
+                        let evnt = data[i];
+                        let timestamp1 = evnt.returnValues._timestamp1;
+                        let timestamp2 = evnt.returnValues._timestamp2;
+                        let txShort = evnt.transactionHash.substring(2, 10);
+                        let price1 = parseFloat(evnt.returnValues._price1);
+                        let price2 = parseFloat(evnt.returnValues._price2);
+                        let diff = Math.abs(price1 - price2);
+                        let source1 = exchangeLookup[evnt.returnValues._source1];
+                        let source2 = exchangeLookup[evnt.returnValues._source2];
+                        let priceOk = false;
+                        if(price1 > 0 && price2 > 0) {
+                            priceOk = true;
+                        }
+
+
+                            let trHtml = '<tr>';
+                            trHtml += '<td>' + source1 + '</td>';
+                            trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp1) + '</td>';
+                            trHtml += '<td>$' + price1 / 100 + '</td>';
+                            trHtml += '<td>' + source2 + '</td>';
+                            trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp2) + '</td>';
+                            trHtml += '<td>$' + price2 / 100 + '</td>';
+                            trHtml += '<td>$' + parseFloat(diff) / 100 + '</td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block #' + evnt.blockNumber + ' in Finchain Explorer">' + evnt.blockNumber + '</a></td>';
+
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Tx ' + txShort + ' in Finchain Explorer">' + txShort + '</a></td>';
+
+                            trHtml += '</tr>';
+
+                            $('#disc_table').append(trHtml);
+
+                    }
+
+                    $('[data-toggle="tooltip"]').tooltip();
+                    $('#discrepancy-table').DataTable({
+                             "pagingType": "full_numbers",
+                             "order": [[ 1, "desc" ]]
+                    });
+                    $('.dataTables_length').addClass('bs-select');
+
+                } else {
+                    console.log(data);
+                    $('#status').text("Please refresh to try again");
+                }
+            });
+
+            finchainDiscrepencyWatcher.getLatestEvents(ticker, timespan, "currencyData", function(success, data) {
+                if(success && data != undefined) {
+                    $('#crypto_table').html('');
+                    for (i = 0; i < data.length; i++) {
+                        let evnt = data[i];
+                        let timestamp = evnt.returnValues._timestamp;
+                        let txShort = evnt.transactionHash.substring(2, 10);
+                        let fromShort = evnt.returnValues._from.substring(2, 10);
+                        let price = parseFloat(evnt.returnValues._price);
+
+                            let trHtml = '<tr>';
+                            trHtml += '<td>$' + parseFloat(evnt.returnValues._price) / 100 + '</td>';
+                            trHtml += '<td>' + timeConverter(evnt.returnValues._timestamp) + '</td>';
+                            trHtml += '<td>' + exchangeLookup[evnt.returnValues._source] + '</td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/block/' + evnt.blockNumber + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Block #' + evnt.blockNumber + ' in Finchain Explorer">' + evnt.blockNumber + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/tx/' + evnt.transactionHash + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Tx ' + txShort + ' in Finchain Explorer">' + txShort + '</a></td>';
+                            trHtml += '<td><a href="<%= WRKCHAIN_EXPLORER_URL%>/address/' + evnt.returnValues._from + '" target="_blank" data-toggle="tooltip" data-placement="bottom" title="View Address ' + evnt.returnValues._from + ' in Finchain Explorer">' + fromShort + '</a></td>';
+
+                            trHtml += '</tr>';
+
+                            $('#crypto_table').append(trHtml);
+
+                    }
+                    $('[data-toggle="tooltip"]').tooltip();
+                    $('#crypto-table').DataTable({
+                             "pagingType": "full_numbers",
+                             "order": [[ 1, "desc" ]]
+                    });
+                    $('.dataTables_length').addClass('bs-select');
+                    if(ticker !== null) {
+                        drawChart(data);
+                    }
+                } else {
+                    console.log(data);
+                    $('#status').text("Please refresh to try again");
+                }
+            });
+
+        }
+
+        function timeConverter(UNIX_timestamp, groupBy='sec'){
+            var a = new Date(UNIX_timestamp * 1000);
+            var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            var year = a.getFullYear();
+            var month = months[a.getMonth()];
+            var date = a.getDate();
+            var hour = "0" + a.getHours();
+            var min = "0" + a.getMinutes();
+            var sec = "0" + a.getSeconds();
+
+            switch(groupBy) {
+                case 'hour':
+                    var time = date + ' ' + month + ' ' + year + ' ' + hour.substr(-2) + ':00 - ' + hour.substr(-2) + ':59' ;
+                    break;
+                case 'min':
+                    var time = date + ' ' + month + ' ' + year + ' ' + hour.substr(-2) + ':' + min.substr(-2) ;
+                    break;
+                case 'sec':
+                default:
+                    var time = date + ' ' + month + ' ' + year + ' ' + hour.substr(-2) + ':' + min.substr(-2) + ':' + sec.substr(-2) ;
+                    break
+            }
+            return time;
+        }
+
+        function secondsToTime(secs) {
+            secs = Math.round(secs);
+            var hours = Math.floor(secs / (60 * 60));
+
+            var divisor_for_minutes = secs % (60 * 60);
+            var minutes = Math.floor(divisor_for_minutes / 60);
+
+            var divisor_for_seconds = divisor_for_minutes % 60;
+            var seconds = divisor_for_seconds;
+
+            var obj = {
+                "h": hours,
+                "m": minutes,
+                "s": seconds
+            };
+            return obj;
+        }
+
+        $('#tracker_select').change(function(){
+            let ticker = $("#tracker_select option:selected").val();
+            let ts = $("#timespan_select option:selected").val();
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/crypto/track/" + ticker + "/" + ts;
+        });
+
+        $('#timespan_select').change(function(){
+            let ticker = $("#tracker_select option:selected").val();
+            let ts = $("#timespan_select option:selected").val();
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/crypto/track/" + ticker + "/"  + ts;
+        });
+
+         function compare_timestamp(a, b) {
+             // a should come before b in the sorted order
+             if (a.returnValues._timestamp < b.returnValues._timestamp) {
+                 return -1;
+                 // a should come after b in the sorted order
+             } else if (a.returnValues._timestamp > b.returnValues._timestamp) {
+                 return 1;
+                 // and and b are the same
+             } else {
+                 return 0;
+             }
+         }
+
+        async function drawChart(data) {
+            let oracles = await finchainDiscrepencyWatcher.getAllOracles();
+            let sources = [];
+            for (let i = 0; i < oracles.length; i++) {
+                let src = await finchainDiscrepencyWatcher.getSource(oracles[i]);
+                sources.push(src);
+            }
+
+            let colours = {};
+            let averages = {};
+            for(let i = 0; i < sources.length; i++) {
+                colours[sources[i]] = colourList[i];
+                //calculate averages for missing data...
+                averages[sources[i]] = {avg:0,cnt:0,tot:0};
+            }
+
+            let minPrice = 100000000.0;
+            let maxPrice = 0.0;
+
+            //data = data.reverse();
+            data = data.sort(compare_timestamp);
+            var ctx = document.getElementById('cryptoChart').getContext('2d');
+
+            let dataSets = [];
+            let labels = [];
+            let dataByDate = {};
+
+            for (i = 0; i < data.length; i++) {
+                let evnt = data[i];
+                let price = parseFloat(evnt.returnValues._price) / 100;
+                let source = evnt.returnValues._source;
+                let timestamp = evnt.returnValues._timestamp;
+
+                if(price > 0) {
+                    averages[source].cnt++;
+                    averages[source].tot += price;
+                    if(price < minPrice) {
+                        minPrice = price;
+                    }
+                    if(price > maxPrice) {
+                        maxPrice = price;
+                    }
+                }
+            }
+
+            for(let i = 0; i < sources.length; i++) {
+                averages[sources[i]].avg = (averages[sources[i]].tot / averages[sources[i]].cnt).toFixed(2);
+            }
+            // last submitted value - begin with avg
+            for(let i = 0; i < sources.length; i++) {
+                averages[sources[i]].last = averages[sources[i]].avg;
+            }
+
+            for (i = 0; i < data.length; i++) {
+                let evnt = data[i];
+                let price = parseFloat(evnt.returnValues._price) / 100;
+                let dateTime = timeConverter(evnt.returnValues._timestamp, 'min');
+                let source = evnt.returnValues._source;
+                let timestamp = evnt.returnValues._timestamp;
+
+                if(!labels.includes(dateTime)) {
+                    labels.push(dateTime);
+                    // initialise with last submitted value to fill missing data
+                    dataByDate[dateTime] = {};
+                    for(let i = 0; i < sources.length; i++) {
+                        dataByDate[dateTime][sources[i]] = averages[sources[i]].last
+                    }
+                }
+                if(price > 0) {
+                    dataByDate[dateTime][source] = price;
+
+                    //update last submitted value
+                    averages[source].last = price;
+                }
+            }
+
+            let diffPrice = maxPrice - minPrice;
+            let dataKeys = Object.keys(averages); //use this to get sources
+
+            for(let k of dataKeys) {
+                let d = [];
+                for(let dateKey of Object.keys(dataByDate)) {
+                    d.push(dataByDate[dateKey][k]);
+                }
+                let chartData = {};
+                chartData['label'] = exchangeLookup[k];
+                chartData['data'] = d;
+                chartData['backgroundColor'] = [colours[k].backgroundColor]
+                chartData['borderColor'] = [colours[k].borderColor]
+                dataSets.push(chartData);
+            }
+
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: dataSets
+                 },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                suggestedMin: (minPrice - (diffPrice / 5)),
+                                suggestedMax: (maxPrice + (diffPrice / 5)),
+                                callback: function(value, index, values) {
+                                    return '$' + value;
+                                }
+                            }
+                        }],
+                        xAxes: [{
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return value;
+                                }
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

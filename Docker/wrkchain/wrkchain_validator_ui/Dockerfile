@@ -18,12 +18,13 @@ ARG ALPHAVANTAGE
 ARG WORLDTRADING
 ARG IEX
 ARG THRESHOLD
+ARG CRYPTO_THRESHOLD
 ARG TRACKED_TICKERS
+ARG TRACKED_CRYPTOS
 ARG UPDATE_TIME
-ARG WRKCHAIN_PKEY_1
-ARG WRKCHAIN_PKEY_2
-ARG WRKCHAIN_PKEY_3
-ARG WRKCHAIN_PKEY_4
+ARG CRYPTO_UPDATE_TIME
+ARG CRYPTO_TIMEDIFF
+ARG MNEMONIC
 ARG WRKCHAIN_ID
 ARG WRKCHAIN_OWNER
 
@@ -51,12 +52,13 @@ RUN echo "MAINCHAIN_EXPLORER_URL=${MAINCHAIN_EXPLORER_URL}" >> /root/finchain-or
     echo "WORLDTRADING=${WORLDTRADING}" >> /root/finchain-oracle-contract/.env && \
     echo "IEX=${IEX}" >> /root/finchain-oracle-contract/.env && \
     echo "THRESHOLD=${THRESHOLD}" >> /root/finchain-oracle-contract/.env && \
+    echo "CRYPTO_THRESHOLD=${CRYPTO_THRESHOLD}" >> /root/finchain-oracle-contract/.env && \
     echo "TRACKED_TICKERS=${TRACKED_TICKERS}" >> /root/finchain-oracle-contract/.env && \
+    echo "TRACKED_CRYPTOS=${TRACKED_CRYPTOS}" >> /root/finchain-oracle-contract/.env && \
     echo "UPDATE_TIME=${UPDATE_TIME}" >> /root/finchain-oracle-contract/.env && \
-    echo "WRKCHAIN_PKEY_1=${WRKCHAIN_PKEY_1}" >> /root/finchain-oracle-contract/.env && \
-    echo "WRKCHAIN_PKEY_2=${WRKCHAIN_PKEY_2}" >> /root/finchain-oracle-contract/.env && \
-    echo "WRKCHAIN_PKEY_3=${WRKCHAIN_PKEY_3}" >> /root/finchain-oracle-contract/.env && \
-    echo "WRKCHAIN_PKEY_4=${WRKCHAIN_PKEY_4}" >> /root/finchain-oracle-contract/.env && \
+    echo "CRYPTO_UPDATE_TIME=${CRYPTO_UPDATE_TIME}" >> /root/finchain-oracle-contract/.env && \
+    echo "CRYPTO_TIMEDIFF=${CRYPTO_TIMEDIFF}" >> /root/finchain-oracle-contract/.env && \
+    echo "MNEMONIC=${MNEMONIC}" >> /root/finchain-oracle-contract/.env && \
     echo "WRKCHAIN_OWNER=${WRKCHAIN_OWNER}" >> /root/finchain-oracle-contract/.env && \
     chmod +x /root/run_finchain_services.sh && \
     echo "alias ll='ls -la'" >> /root/.bashrc

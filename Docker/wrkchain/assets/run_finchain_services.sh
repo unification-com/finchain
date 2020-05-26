@@ -6,11 +6,17 @@ truffle migrate 2>&1 | tee sc_log.txt
 
 WRKCHAIN_NETWORK_ID_ENV=$(grep 'WRKCHAIN_NETWORK_ID' /root/finchain-oracle-contract/.env)
 WRKCHAIN_NETWORK_ID=${WRKCHAIN_NETWORK_ID_ENV##*=}
-CONTRACT_ADDRESS=$(node /root/finchain-oracle-contract/abi.js addr ${WRKCHAIN_NETWORK_ID})
-FINCHAIN_ORACLE_ABI=$(node /root/finchain-oracle-contract/abi.js)
+CONTRACT_ADDRESS=$(node /root/finchain-oracle-contract/abi.js addr stocks ${WRKCHAIN_NETWORK_ID})
+FINCHAIN_ORACLE_ABI=$(node /root/finchain-oracle-contract/abi.js abi stocks)
+
+CRYPTO_CONTRACT_ADDRESS=$(node /root/finchain-oracle-contract/abi.js addr crypto ${WRKCHAIN_NETWORK_ID})
+CRYPTO_ORACLE_ABI=$(node /root/finchain-oracle-contract/abi.js abi crypto)
 
 echo "CONTRACT_ADDRESS=${CONTRACT_ADDRESS}" >> /root/finchain-oracle-contract/.env
 echo "FINCHAIN_ORACLE_ABI=${FINCHAIN_ORACLE_ABI}" >> /root/finchain-oracle-contract/.env
+
+echo "CRYPTO_CONTRACT_ADDRESS=${CRYPTO_CONTRACT_ADDRESS}" >> /root/finchain-oracle-contract/.env
+echo "CRYPTO_ORACLE_ABI=${CRYPTO_ORACLE_ABI}" >> /root/finchain-oracle-contract/.env
 
 cp /root/finchain-oracle-contract/.env /root/finchain-ui/.env
 cp /root/finchain-oracle-contract/.env /root/finchain-oracle-service/.env

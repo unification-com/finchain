@@ -12,6 +12,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js" type="text/javascript"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <!-- Font Awesome -->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+<!-- Google Fonts -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.18.0/css/mdb.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -25,7 +30,8 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
           <ul class="navbar-nav mr-auto">
-            <li class="nav-item active"><a class="nav-link" href="/">$tock Watcher</a></li>
+              <li class="nav-item"><a class="nav-link" href="/">Crypto Watcher</a></li>
+            <!-- <li class="nav-item active"><a class="nav-link" href="/stocks">Stock Watcher</a></li> -->
             <li class="nav-item"><a class="nav-link" href="/wrkoracle">WRKOracle Watcher</a></li>
             <li class="nav-item"><a class="nav-link" href="/validate"><%= WRKCHAIN_NAME%> Block Validation</a></li>
             <li class="nav-item"><a class="nav-link" href="<%= WRKCHAIN_EXPLORER_URL%>" target="_blank"><%= WRKCHAIN_NAME%> Block Explorer</a></li>
@@ -37,7 +43,7 @@
     <!-- Begin page content -->
     <main role="main" class="container">
         <br>
-    <h1 class="mt-5"><%= WRKCHAIN_NAME%> $tock Watcher</h1>
+    <h1 class="mt-5"><%= WRKCHAIN_NAME%> Stock Watcher</h1>
 
     <div id="oracle_container">
 
@@ -158,7 +164,8 @@
 
             <!-- Copyright -->
             <div class="footer-copyright text-center py-3">&copy; 2019
-                <a href="https://unification.com"> unification.com</a> | <a href="https://github.com/unification-com/finchain-demo">View on Github</a>
+                <a href="https://unification.com" target="_blank"> unification.com</a> |
+                <a href="https://github.com/unification-com/finchain" target="_blank">View on Github</a>
             </div>
         </div>
     </footer>
@@ -268,7 +275,7 @@
             });
 
 
-            finchainDiscrepencyWatcher.getLatestDiscrepencies(ticker, timespan, function(success, data) {
+            finchainDiscrepencyWatcher.getLatestEvents(ticker, timespan, "discrepancy", function(success, data) {
                 if(success && data != undefined) {
                     $('#disc_table').html('');
                     for (i = 0; i < data.length; i++) {
@@ -330,7 +337,7 @@
                 }
             });
 
-            finchainDiscrepencyWatcher.getLatestStocks(ticker, timespan, function(success, data) {
+            finchainDiscrepencyWatcher.getLatestEvents(ticker, timespan, "stockData", function(success, data) {
                 if(success && data != undefined) {
                     $('#stock_table').html('');
                     for (i = 0; i < data.length; i++) {
@@ -453,14 +460,14 @@
             let ticker = $("#tracker_select option:selected").val();
             let trading = $("#trading_select option:selected").val();
             let ts = $("#timespan_select option:selected").val();
-            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/track/" + ticker + "/" + trading + "/" + ts;
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/stocks/track/" + ticker + "/" + trading + "/" + ts;
         });
 
         $('#trading_select').change(function(){
             let ticker = $("#tracker_select option:selected").val();
             let trading = $("#trading_select option:selected").val();
             let ts = $("#timespan_select option:selected").val();
-            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/track/" + ticker + "/" + trading + "/" + ts;
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/stocks/track/" + ticker + "/" + trading + "/" + ts;
         });
 
 
@@ -468,7 +475,7 @@
             let ticker = $("#tracker_select option:selected").val();
             let trading = $("#trading_select option:selected").val();
             let ts = $("#timespan_select option:selected").val();
-            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/track/" + ticker + "/" + trading + "/" + ts;
+            window.location = window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + "/stocks/track/" + ticker + "/" + trading + "/" + ts;
         });
 
 
@@ -549,8 +556,10 @@
                 if(!labels.includes(dateTime) && display === true) {
                     labels.push(dateTime);
                     // initialise with last submitted value to fill missing data
-                    dataByDate[dateTime] = {'Alpha Vantage':parseFloat(averages['Alpha Vantage'].last),
-                                            'IEX Cloud':parseFloat(averages['IEX Cloud'].last)};
+                    dataByDate[dateTime] = {};
+                    for(let i = 0; i < sources.length; i++) {
+                        dataByDate[dateTime][sources[i]] = averages[sources[i]].last
+                    }
                 }
                 if(price > 0 && display === true) {
                     dataByDate[dateTime][source] = price;
