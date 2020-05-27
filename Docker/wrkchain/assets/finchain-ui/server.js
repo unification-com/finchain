@@ -157,6 +157,13 @@ app.get('/crypto/track/:ticker?/:timespan?', function (req, res) {
 //     });
 // });
 
+// about page
+app.get('/about', function (req, res) {
+    res.render('pages/about', {
+        WRKCHAIN_NAME: process.env.WRKCHAIN_NAME,
+        WRKCHAIN_EXPLORER_URL: process.env.WRKCHAIN_EXPLORER_URL,
+    });
+});
 
 // wrkoracle watcher page
 app.get('/wrkoracle', function (req, res) {
