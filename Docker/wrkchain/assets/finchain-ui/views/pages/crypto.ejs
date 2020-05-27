@@ -47,6 +47,8 @@
 
     <div id="oracle_container">
 
+        <h2>Data for <% if (locals.TICKER) { %><%= TICKER%> <% } %> <span id="company_name"></span></h2>
+
         <table>
             <tbody>
             <tr>
@@ -82,8 +84,13 @@
             </tr>
             </tbody>
         </table>
+
+            <% if (locals.TICKER) { %>
+            <canvas id="cryptoChart" width="400" height="200"></canvas>
+            <% } %>
+
         <div>
-            <h2>Latest Prices Submitted<% if (locals.TICKER) { %>: <%= TICKER%> <% } %> <span id="company_name"></span></h2>
+            <h2>Latest Prices Submitted<% if (locals.TICKER) { %>: <%= TICKER%> <% } %></h2>
             <table class="table table-striped table-bordered table-sm" id="crypto-table">
                 <thead>
                 <tr>
@@ -121,10 +128,6 @@
                 </tr>
                 </tfoot>
             </table>
-
-            <% if (locals.TICKER) { %>
-            <canvas id="cryptoChart" width="400" height="200"></canvas>
-            <% } %>
 
         </div>
 
@@ -186,8 +189,8 @@
             <!-- Copyright -->
             <div class="footer-copyright text-center py-3">&copy; 2019
                 <a href="https://unification.com" target="_blank"> unification.com</a>
-                | <a href="https://github.com/unification-com/finchain" target="_blank">View on Github</a>
-                | <a href="https://www.coingecko.com/api" target="_blank">Powered by CoinGecko</a>
+                | <a href="https://docs.google.com/forms/d/e/1FAIpQLSe0ra5Pm4XJ-gLMTSUD4A93JnWiVnBogT_i0KOyXi5xPcLKbQ/viewform" target="_blank">Request Asset Addition</a>
+                | <a href="/about" target="_blank">About</a>
             </div>
         </div>
     </footer>
